@@ -101,6 +101,29 @@
         .animate-spin-swell {
             animation: pulse-swell 1.2s ease-in-out infinite;
         }
+        /* Pseudo-fullscreen and standard fullscreen centering support */
+        .pseudo-fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            z-index: 50 !important;
+            background-color: #070913 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 1.5rem !important;
+            border-radius: 0 !important;
+        }
+        .pseudo-fullscreen #phaser-grid-mount {
+            width: 100% !important;
+            max-width: 480px !important;
+            aspect-ratio: 5/6 !important;
+            height: auto !important;
+        }
         .geometry-stat-box {
             background: rgba(0, 0, 0, 0.65);
             border: 1px solid #4a3500;
@@ -137,6 +160,14 @@
             <span class="px-2.5 py-1 text-[11px] font-mono tracking-wider text-emerald-400 bg-emerald-950/40 rounded-full border border-emerald-500/20">
                 ● 6x5 CASCADE CASCADE
             </span>
+            
+            <!-- Fullscreen Toggle Button -->
+            <button onclick="toggleFullScreen()" class="px-2.5 py-1 text-[11px] font-bold font-sans tracking-wider text-amber-400 hover:text-white bg-amber-950/50 hover:bg-amber-900/80 border border-amber-500/30 rounded-full flex items-center gap-1.5 cursor-pointer transition-all shadow-[0_0_8px_rgba(245,158,11,0.15)] hover:shadow-[0_0_12px_rgba(245,158,11,0.35)]" title="Layar Penuh (Full Screen)">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4"></path>
+                </svg>
+                FULL SCREEN
+            </button>
         </div>
     </header>
 
@@ -223,6 +254,41 @@
                         <button onclick="closeFreeSpinsSummary()" class="z-10 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 font-bold text-white tracking-widest text-xs hover:brightness-110 cursor-pointer shadow-md transition-all">
                             LANJUTKAN GAME
                         </button>
+                    </div>
+                    
+                    <!-- Big Win Overlay Celebration -->
+                    <div id="big-win-overlay" class="absolute inset-0 z-30 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center gap-6 text-center p-6 opacity-0 pointer-events-none transition-all duration-500 overflow-hidden">
+                        <!-- Epic Golden Fireworks / Radiation rays backend graphics -->
+                        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,rgba(245,158,11,0.2)_0%,transparent_70%)] animate-pulse"></div>
+                        
+                        <!-- Rotating visual back rings -->
+                        <div class="absolute w-72 h-72 rounded-full border border-yellow-500/20 animate-[spin_12s_linear_infinite]"></div>
+                        <div class="absolute w-96 h-96 rounded-full border-2 border-dashed border-amber-500/10 animate-[spin_24s_linear_infinite]"></div>
+                        
+                        <!-- Sparkle animation elements -->
+                        <div class="z-10 animate-bounce">
+                            <span id="big-win-subtitle" class="text-xs font-black tracking-[0.3em] text-yellow-500 uppercase animate-pulse block">DEWA ZEUS TERSENYUM</span>
+                            <h1 id="big-win-title" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 drop-shadow-[0_6px_15px_rgba(245,158,11,0.6)] uppercase tracking-wider my-2">
+                                BIG WIN!
+                            </h1>
+                        </div>
+                        
+                        <!-- Counter Box -->
+                        <div class="z-10 px-8 py-5 rounded-3xl bg-gradient-to-b from-[#1c120c] to-[#070913] border-2 border-yellow-500 shadow-[0_0_35px_rgba(245,158,11,0.4)] min-w-[280px] md:min-w-[340px] flex flex-col justify-center items-center relative">
+                            <!-- Inner glow corner indicators -->
+                            <div class="absolute top-2 left-3 text-[10px] text-yellow-500/60 font-bold">★</div>
+                            <div class="absolute top-2 right-3 text-[10px] text-yellow-500/60 font-bold">★</div>
+                            <div class="absolute bottom-2 left-3 text-[10px] text-yellow-500/60 font-bold">★</div>
+                            <div class="absolute bottom-2 right-3 text-[10px] text-yellow-500/60 font-bold">★</div>
+                            
+                            <span class="text-[9px] uppercase font-bold tracking-widest text-gray-400 mb-1">TOTAL KEMENANGAN AKHIR</span>
+                            <span id="big-win-counter" class="text-3xl md:text-4xl font-extrabold text-[#D4AF37] text-gold-shadow font-mono">Rp 0</span>
+                        </div>
+                        
+                        <!-- Floating status tip -->
+                        <div class="z-10 text-[9px] font-mono text-amber-400 animate-pulse uppercase tracking-[0.2em] md:tracking-[0.3em]">
+                            ★ SENSASI KEMENANGAN LUAR BIASA ★
+                        </div>
                     </div>
                     
                     <!-- Canvas holder -->
@@ -949,6 +1015,59 @@
 
         const game = new Phaser.Game(config);
 
+        function swapSymbols(scene, c1, r1, c2, r2) {
+            const sym1 = grid[c1][r1];
+            const sym2 = grid[c2][r2];
+            
+            if (!sym1 || !sym2) return;
+            
+            // Lock UI/Actions during swipe & reaction cascade
+            isSpinning = true;
+            setSpinButtonState(false);
+            
+            // Swap in matrix grid
+            grid[c1][r1] = sym2;
+            grid[c2][r2] = sym1;
+            
+            // Physical target centers
+            const x1 = c1 * 100 + 50;
+            const y1 = r1 * 100 + 50;
+            const x2 = c2 * 100 + 50;
+            const y2 = r2 * 100 + 50;
+            
+            let completed = 0;
+            const onSwapComplete = () => {
+                completed++;
+                if (completed === 2) {
+                    addLog(`🔄 SIMBOL DIGESER! Menukar baris/kolom untuk evaluasi kombinasi baru...`, "text-amber-400 font-bold");
+                    // Play switch audio ding
+                    SlotAudio.playMultiplier();
+                    // Check matches
+                    checkAndProcessCascade(scene);
+                }
+            };
+            
+            scene.tweens.add({
+                targets: sym1.sprite,
+                x: x2,
+                y: y2,
+                duration: 250,
+                ease: 'Back.easeOut',
+                easeParams: [0.3],
+                onComplete: onSwapComplete
+            });
+            
+            scene.tweens.add({
+                targets: sym2.sprite,
+                x: x1,
+                y: y1,
+                duration: 250,
+                ease: 'Back.easeOut',
+                easeParams: [0.3],
+                onComplete: onSwapComplete
+            });
+        }
+
         function create() {
             const scene = this;
             
@@ -960,6 +1079,239 @@
             
             // Spawn default starter grid (just visual cards on load, doesn't score/deduct bet)
             populateInitialBoard(scene);
+
+            // Set up drag-and-swipe interactive hooks
+            scene.input.on('pointerdown', (pointer, gameObjects) => {
+                if (isSpinning) return;
+                if (gameObjects && gameObjects.length > 0) {
+                    const clickedSprite = gameObjects[0];
+                    let clickCol = -1;
+                    let clickRow = -1;
+                    
+                    // Locate target coordinate in grid mapping
+                    for (let c = 0; c < COLS; c++) {
+                        for (let r = 0; r < ROWS; r++) {
+                            if (grid[c][r] && grid[c][r].sprite === clickedSprite) {
+                                clickCol = c;
+                                clickRow = r;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (clickCol !== -1 && clickRow !== -1) {
+                        scene._draggedSym = { col: clickCol, row: clickRow, sprite: clickedSprite };
+                        scene._dragStartX = pointer.x;
+                        scene._dragStartY = pointer.y;
+                    }
+                }
+            });
+
+            scene.input.on('pointerup', (pointer) => {
+                if (isSpinning || !scene._draggedSym) return;
+                
+                const deltaX = pointer.x - scene._dragStartX;
+                const deltaY = pointer.y - scene._dragStartY;
+                const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                
+                if (distance > 25) { // Dragged further than threshold
+                    let targetCol = scene._draggedSym.col;
+                    let targetRow = scene._draggedSym.row;
+                    
+                    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                        // Horizontal Swiping
+                        if (deltaX > 0) targetCol += 1;
+                        else targetCol -= 1;
+                    } else {
+                        // Vertical Swiping
+                        if (deltaY > 0) targetRow += 1;
+                        else targetRow -= 1;
+                    }
+                    
+                    // Boundary constraint checks
+                    if (targetCol >= 0 && targetCol < COLS && targetRow >= 0 && targetRow < ROWS) {
+                        swapSymbols(scene, scene._draggedSym.col, scene._draggedSym.row, targetCol, targetRow);
+                    }
+                }
+                scene._draggedSym = null;
+            });
+        }
+
+        // Draw organic realistic thunder/lightning lines helper
+        function drawLightningLine(graphics, x1, y1, x2, y2) {
+            const segments = 7;
+            graphics.moveTo(x1, y1);
+            
+            let curX = x1;
+            let curY = y1;
+            
+            for (let i = 1; i < segments; i++) {
+                const t = i / segments;
+                // Linear target coordinates
+                let targetX = x1 + (x2 - x1) * t;
+                let targetY = y1 + (y2 - y1) * t;
+                
+                // Normal perpendicular vector for zig-zag organic thunder offsets
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                if (len > 0) {
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    
+                    const offset = Phaser.Math.FloatBetween(-25, 25);
+                    targetX += nx * offset;
+                    targetY += ny * offset;
+                }
+                
+                graphics.lineTo(targetX, targetY);
+            }
+            
+            graphics.lineTo(x2, y2);
+            graphics.strokePath();
+        }
+
+        // Magnificent high-energy Scatter Win visual effects trigger
+        function showScatterVisualEffect(scene, scatterSymbols) {
+            if (!scatterSymbols || scatterSymbols.length === 0) return;
+            
+            // 1. Full-screen white-hot sky flash
+            const flash = scene.add.graphics();
+            flash.fillStyle(0xfff24d, 0.45);
+            flash.fillRect(0, 0, 600, 500);
+            flash.depth = 1100;
+            scene.tweens.add({
+                targets: flash,
+                alpha: 0,
+                duration: 500,
+                onComplete: () => flash.destroy()
+            });
+
+            // 2. Play intense rumble rattle sounds
+            SlotAudio.playWin();
+            
+            // 3. Shake camera with extreme seismic rumble
+            scene.cameras.main.shake(400, 0.015);
+            
+            // 4. Trace majestic golden electrical web between all active scatter elements!
+            const lineGraphics = scene.add.graphics();
+            lineGraphics.depth = 1005;
+            
+            scene.tweens.add({
+                targets: { val: 0 },
+                val: 1,
+                duration: 900,
+                yoyo: true,
+                repeat: 3,
+                onUpdate: (tween, target) => {
+                    lineGraphics.clear();
+                    const alpha = 1 - Math.abs(0.5 - target.val) * 2;
+                    
+                    // Main golden lightning core
+                    lineGraphics.lineStyle(5, 0xffcc00, alpha);
+                    for (let i = 0; i < scatterSymbols.length; i++) {
+                        const s1 = scatterSymbols[i].sprite;
+                        const s2 = scatterSymbols[(i + 1) % scatterSymbols.length].sprite;
+                        if (s1 && s2) {
+                            drawLightningLine(lineGraphics, s1.x, s1.y, s2.x, s2.y);
+                        }
+                    }
+                    
+                    // White-hot inner core line
+                    lineGraphics.lineStyle(2, 0xffffff, alpha * 0.9);
+                    for (let i = 0; i < scatterSymbols.length; i++) {
+                        const s1 = scatterSymbols[i].sprite;
+                        const s2 = scatterSymbols[(i + 1) % scatterSymbols.length].sprite;
+                        if (s1 && s2) {
+                            drawLightningLine(lineGraphics, s1.x, s1.y, s2.x, s2.y);
+                        }
+                    }
+                },
+                onComplete: () => {
+                    lineGraphics.destroy();
+                }
+            });
+
+            // 5. Expand circular energy pulses & shoot gorgeous golden particle fountains from each scatter crown
+            scatterSymbols.forEach(sym => {
+                if (!sym || !sym.sprite) return;
+                const sx = sym.sprite.x;
+                const sy = sym.sprite.y;
+
+                // Multiple expanding golden shockwave halos
+                for (let r = 0; r < 3; r++) {
+                    const ring = scene.add.graphics();
+                    ring.lineStyle(3.5, 0xffea00, 1.0);
+                    ring.strokeCircle(sx, sy, 22);
+                    ring.depth = 1002;
+                    scene.tweens.add({
+                        targets: ring,
+                        scaleX: 4.2,
+                        scaleY: 4.2,
+                        alpha: 0,
+                        delay: r * 160,
+                        duration: 650,
+                        onComplete: () => ring.destroy()
+                    });
+                }
+
+                // Shimmering upward star sparks
+                for (let j = 0; j < 14; j++) {
+                    const spark = scene.add.image(sx, sy, 'sparkle');
+                    spark.setScale(0.15);
+                    spark.setTint(0xffd700);
+                    spark.setBlendMode(Phaser.BlendModes.ADD);
+                    spark.depth = 1010;
+                    scene.tweens.add({
+                        targets: spark,
+                        x: sx + Phaser.Math.FloatBetween(-40, 40),
+                        y: sy - Phaser.Math.FloatBetween(150, 350),
+                        alpha: 0,
+                        scaleX: 0.22,
+                        scaleY: 0.22,
+                        duration: Phaser.Math.Between(800, 1300),
+                        ease: 'Sine.easeOut',
+                        onComplete: () => spark.destroy()
+                    });
+                }
+            });
+
+            // 6. Magnificent large floating center text "⚡ ZEUS SCATTER ⚡"
+            const txt = scene.add.text(300, 250, '⚡ ZEUS SCATTER ⚡', {
+                fontFamily: 'sans-serif',
+                fontSize: '46px',
+                fontWeight: '900',
+                color: '#ffe066',
+                align: 'center',
+                stroke: '#e69d00',
+                strokeThickness: 6,
+                shadow: { color: '#000000', fill: true, offsetX: 5, offsetY: 5, blur: 16 }
+            });
+            txt.setOrigin(0.5);
+            txt.depth = 1105;
+            txt.setScale(0.1);
+            txt.alpha = 0;
+            
+            scene.tweens.add({
+                targets: txt,
+                scaleX: 1.25,
+                scaleY: 1.25,
+                alpha: 1,
+                angle: 360,
+                ease: 'Back.easeOut',
+                duration: 500,
+                onComplete: () => {
+                    scene.tweens.add({
+                        targets: txt,
+                        scaleX: 1.45,
+                        scaleY: 1.45,
+                        alpha: 0,
+                        duration: 1000,
+                        delay: 700,
+                        onComplete: () => txt.destroy()
+                    });
+                }
+            });
         }
 
         // Draw programmatical shape symbols to avoid load asset files
@@ -1115,6 +1467,16 @@
             spark.fillCircle(8, 8, 6);
             spark.generateTexture('sparkle', 16, 16);
             spark.destroy();
+
+            // Generate radial glow texture for winning highlight effects (pulsating background halos)
+            const glow = scene.make.graphics({ x: 0, y: 0, add: false });
+            for (let r = 40; r > 0; r -= 2) {
+                const alpha = (1 - (r / 40)) * 0.45;
+                glow.fillStyle(0xffffff, alpha);
+                glow.fillCircle(40, 40, r);
+            }
+            glow.generateTexture('glow_texture', 80, 80);
+            glow.destroy();
         }
 
         // Draw static golden card blocks in Phaser
@@ -1164,6 +1526,7 @@
                     const sprite = scene.add.image(cx, cy, color + '_texture');
                     sprite.setScale(0.8);
                     sprite.alpha = 0;
+                    sprite.setInteractive({ useHandCursor: true });
                     
                     grid[c][r] = { sprite: sprite, color: color };
                     
@@ -1250,9 +1613,11 @@
                     const sprite = scene.add.image(startX, startY, color + '_texture');
                     sprite.setScale(0.8);
                     sprite.alpha = 0;
+                    sprite.setInteractive({ useHandCursor: true });
                     
                     grid[c][r] = { sprite: sprite, color: color };
                     
+                    let trailTimer = 0;
                     scene.tweens.add({
                         targets: sprite,
                         y: targetY,
@@ -1261,7 +1626,34 @@
                         delay: delay,
                         ease: 'Back.easeOut',
                         easeParams: [0.6],
+                        onUpdate: (tween, target) => {
+                            if (target.y < targetY - 10) {
+                                target.scaleY = 1.15;
+                                target.scaleX = 0.65;
+                            } else {
+                                target.scaleY = 0.8;
+                                target.scaleX = 0.8;
+                            }
+                            
+                            trailTimer++;
+                            if (trailTimer % 2 === 0 && target.y < targetY - 15) {
+                                const ghost = scene.add.image(target.x, target.y, color + '_texture');
+                                ghost.setScale(target.scaleX, target.scaleY);
+                                ghost.alpha = 0.35;
+                                ghost.depth = target.depth - 1;
+                                scene.tweens.add({
+                                    targets: ghost,
+                                    alpha: 0,
+                                    scaleX: target.scaleX * 0.82,
+                                    scaleY: target.scaleY * 0.82,
+                                    duration: 120,
+                                    onComplete: () => ghost.destroy()
+                                });
+                            }
+                        },
                         onComplete: () => {
+                            sprite.scaleY = 0.8;
+                            sprite.scaleX = 0.8;
                             animatedCount++;
                             if (animatedCount === totalTarget) {
                                 // Once all cells settled, evaluate grid match configurations recursively
@@ -1401,20 +1793,36 @@
             let triggeredMultiplier = false;
             let rolledMult = 0;
             let scatterCount = 0;
+            let scatterSymbolsInMatch = [];
  
+            const glows = [];
             wins.forEach(match => {
                 const stepWin = getPayout(match.color, match.symbols.length);
                 stepPayout += stepWin;
                 
+                const colHex = gemColors[match.color] || 0xffffff;
+                
                 if (match.color === 'scatter') {
                     scatterCount = match.symbols.length;
+                    scatterSymbolsInMatch = match.symbols;
                     addLog(`🌟 SYMBOL SCATTER MAHKOTA KING! <b>${match.symbols.length}x SCATTER</b> berkontribusi <b>+Rp ${stepWin.toLocaleString('id-ID')}</b>`, "text-amber-300 font-extrabold animate-bounce");
                 } else {
                     addLog(`🏆 COCOK! <b>${match.symbols.length}x ${match.color.toUpperCase()}</b> berkontribusi <b>+Rp ${stepWin.toLocaleString('id-ID')}</b>`, "text-yellow-400 font-bold");
                 }
                 
                 match.symbols.forEach(elem => {
-                    victims.push(elem.sprite);
+                    if (elem && elem.sprite) {
+                        victims.push(elem.sprite);
+                        
+                        // Create background glowing halo that pulsates matching slot colors!
+                        const glowSprite = scene.add.image(elem.sprite.x, elem.sprite.y, 'glow_texture');
+                        glowSprite.setTint(colHex);
+                        glowSprite.setBlendMode(Phaser.BlendModes.ADD);
+                        glowSprite.setAlpha(0);
+                        glowSprite.setScale(0.8);
+                        glowSprite.depth = elem.sprite.depth - 1; // place immediately behind the symbol
+                        glows.push(glowSprite);
+                    }
                     // Clear cell mapping key
                     grid[elem.col][elem.row] = null;
                 });
@@ -1423,6 +1831,7 @@
             if (scatterCount >= 4) {
                 scatterTriggeredThisRound = true;
                 scatterCountThisRound = scatterCount;
+                showScatterVisualEffect(scene, scatterSymbolsInMatch);
             }
             
             // Gates of Olympus inspired multiplier roll: 40% chance of rolling a multiplier upon any cascading combo!
@@ -1452,15 +1861,15 @@
                 scene.cameras.main.shake(90, 0.005); // Minor rumble
             }
             
-            // Play glowing vibration scale, then melt away winning symbols
+            // Play glowing vibration scale, then melt away winning symbols (glowing background halos + distinct pulsations)
             scene.tweens.add({
                 targets: victims,
-                scaleX: 1.25,
-                scaleY: 1.25,
-                angle: 12,
-                duration: 160 * speedMultiplier,
+                scaleX: 1.35,
+                scaleY: 1.35,
+                angle: 15,
+                duration: 200 * speedMultiplier,
                 yoyo: true,
-                repeat: 2,
+                repeat: 3,
                 onComplete: () => {
                     // Trigger custom particle explosive shimmers
                     wins.forEach(match => {
@@ -1468,7 +1877,7 @@
                         match.symbols.forEach(sym => {
                             if (sym && sym.sprite) {
                                 spawnParticleExplosion(scene, sym.sprite.x, sym.sprite.y, colHex);
-                            }
+                             }
                         });
                     });
 
@@ -1487,6 +1896,20 @@
                             cascadeSymbols(scene);
                         }
                     });
+                }
+            });
+
+            // Pulsate the glowing background halos in sync!
+            scene.tweens.add({
+                targets: glows,
+                scaleX: 1.8,
+                scaleY: 1.8,
+                alpha: 1.0,
+                duration: 200 * speedMultiplier,
+                yoyo: true,
+                repeat: 3,
+                onComplete: () => {
+                    glows.forEach(g => g.destroy());
                 }
             });
         }
@@ -1521,11 +1944,43 @@
                         const duration = ((dist / 500) * 200 + 100) * speedMultiplier;
                         maxDuration = Math.max(maxDuration, duration);
                         
+                        let sTrailTimer = 0;
                         scene.tweens.add({
                             targets: sym.sprite,
                             y: targetY,
                             duration: duration,
-                            ease: 'Bounce.easeOut'
+                            ease: 'Bounce.easeOut',
+                            onUpdate: (tween, target) => {
+                                if (target.y < targetY - 10) {
+                                    target.scaleY = 1.15;
+                                    target.scaleX = 0.65;
+                                } else {
+                                    target.scaleY = 0.8;
+                                    target.scaleX = 0.8;
+                                }
+                                
+                                sTrailTimer++;
+                                if (sTrailTimer % 2 === 0 && target.y < targetY - 15) {
+                                    const ghost = scene.add.image(target.x, target.y, sym.color + '_texture');
+                                    ghost.setScale(target.scaleX, target.scaleY);
+                                    ghost.alpha = 0.35;
+                                    ghost.depth = target.depth - 1;
+                                    scene.tweens.add({
+                                        targets: ghost,
+                                        alpha: 0,
+                                        scaleX: target.scaleX * 0.82,
+                                        scaleY: target.scaleY * 0.82,
+                                        duration: 120,
+                                        onComplete: () => ghost.destroy()
+                                    });
+                                }
+                            },
+                            onComplete: () => {
+                                if (sym && sym.sprite) {
+                                    sym.sprite.scaleY = 0.8;
+                                    sym.sprite.scaleX = 0.8;
+                                }
+                            }
                         });
                     }
                 }
@@ -1544,6 +1999,7 @@
                     const sprite = scene.add.image(startX, startY, color + '_texture');
                     sprite.setScale(0.8);
                     sprite.alpha = 0;
+                    sprite.setInteractive({ useHandCursor: true });
                     
                     grid[c][targetRow] = { sprite: sprite, color: color };
                     
@@ -1551,13 +2007,43 @@
                     const duration = ((dist / 600) * 320 + 160) * speedMultiplier;
                     maxDuration = Math.max(maxDuration, duration);
                     
+                    let nTrailTimer = 0;
                     scene.tweens.add({
                         targets: sprite,
                         y: targetY,
                         alpha: 1,
                         duration: duration,
                         ease: 'Bounce.easeOut',
-                        delay: 100 * speedMultiplier // slight release lag
+                        delay: 100 * speedMultiplier, // slight release lag
+                        onUpdate: (tween, target) => {
+                            if (target.y < targetY - 10) {
+                                target.scaleY = 1.15;
+                                target.scaleX = 0.65;
+                            } else {
+                                target.scaleY = 0.8;
+                                target.scaleX = 0.8;
+                            }
+                            
+                            nTrailTimer++;
+                            if (nTrailTimer % 2 === 0 && target.y < targetY - 15) {
+                                const ghost = scene.add.image(target.x, target.y, color + '_texture');
+                                ghost.setScale(target.scaleX, target.scaleY);
+                                ghost.alpha = 0.35;
+                                ghost.depth = target.depth - 1;
+                                scene.tweens.add({
+                                    targets: ghost,
+                                    alpha: 0,
+                                    scaleX: target.scaleX * 0.82,
+                                    scaleY: target.scaleY * 0.82,
+                                    duration: 120,
+                                    onComplete: () => ghost.destroy()
+                                });
+                            }
+                        },
+                        onComplete: () => {
+                            sprite.scaleY = 0.8;
+                            sprite.scaleX = 0.8;
+                        }
                     });
                 }
             }
@@ -1609,7 +2095,20 @@
                 tickerBullet.className = "w-2.5 h-2.5 rounded-full bg-gray-500";
                 tickerText.innerText = "COOLDOWNS ENDED. TRIES AGAIN.";
             }
-            
+
+            // Big Win Overlay Trigger Criterion: Win is at least 10x the bet size
+            if (finalWin > 0 && finalWin >= bet * 10) {
+                isSpinning = true;
+                setSpinButtonState(false);
+                triggerBigWinCelebration(finalWin, () => {
+                    continueEndSpinCycle();
+                });
+            } else {
+                continueEndSpinCycle();
+            }
+        }
+
+        function continueEndSpinCycle() {
             // Release lockouts for now
             isSpinning = false;
             setSpinButtonState(true);
@@ -1684,6 +2183,148 @@
                     }
                 });
             }
+        }
+
+        // Full Screen mode switch with robust pseudo-fullscreen mode under iframes
+        function toggleFullScreen() {
+            const element = document.getElementById('phaser-game-frame');
+            if (!element) return;
+            
+            const isPseudo = element.classList.contains('pseudo-fullscreen');
+            
+            if (!isPseudo) {
+                element.classList.add('pseudo-fullscreen');
+                addLog("🖥️ Mode Fullscreen Diaktifkan! (ESC atau klik Fullscreen lagi untuk keluar)", "text-amber-400 font-bold");
+                
+                try {
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen();
+                    } else if (element.webkitRequestFullscreen) {
+                        element.webkitRequestFullscreen();
+                    } else if (element.msRequestFullscreen) {
+                        element.msRequestFullscreen();
+                    }
+                } catch(e) {}
+            } else {
+                element.classList.remove('pseudo-fullscreen');
+                addLog("🖥️ Keluar dari Mode Fullscreen.", "text-gray-400");
+                
+                try {
+                    if (document.exitFullscreen && document.fullscreenElement) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen && document.webkitFullscreenElement) {
+                        document.webkitExitFullscreen();
+                    }
+                } catch(e) {}
+            }
+            
+            if (window.game) {
+                setTimeout(() => window.game.scale.refresh(), 100);
+            }
+        }
+        
+        // Keydown listener for ESC fallback on pseudo-fullscreen
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const element = document.getElementById('phaser-game-frame');
+                if (element && element.classList.contains('pseudo-fullscreen')) {
+                    element.classList.remove('pseudo-fullscreen');
+                    addLog("🖥️ Keluar dari Mode Fullscreen.", "text-gray-400");
+                    if (window.game) {
+                        setTimeout(() => window.game.scale.refresh(), 100);
+                    }
+                }
+            }
+        });
+
+        // Trigger Big Win celebratory count up
+        function triggerBigWinCelebration(amount, callback) {
+            const overlay = document.getElementById('big-win-overlay');
+            const sub = document.getElementById('big-win-subtitle');
+            const title = document.getElementById('big-win-title');
+            const countLabel = document.getElementById('big-win-counter');
+            
+            if (!overlay || !countLabel) {
+                if (callback) callback();
+                return;
+            }
+            
+            // Limit checks to bet multi ratio
+            const ratio = amount / bet;
+            let labelText = "BIG WIN!";
+            let subText = "DEWA ZEUS TERSENYUM";
+            let themeClass = "from-yellow-300 via-amber-400 to-yellow-300";
+            
+            if (ratio >= 50) {
+                labelText = "SENSATIONAL WIN!";
+                subText = "KEMURAHAN MAHKOTA PURBA";
+                themeClass = "from-red-400 via-rose-500 to-amber-300";
+            } else if (ratio >= 25) {
+                labelText = "MEGA WIN!";
+                subText = "HASIL GUNTUR DEWA ZEUS";
+                themeClass = "from-amber-400 via-yellow-200 to-emerald-400";
+            }
+            
+            if (sub) sub.innerText = subText;
+            if (title) {
+                title.innerText = labelText;
+                title.className = `text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r ${themeClass} drop-shadow-[0_6px_15px_rgba(245,158,11,0.6)] uppercase tracking-wider my-2`;
+            }
+            
+            // Show overlay with beautiful fadeIn transition
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            overlay.classList.add('opacity-100', 'pointer-events-auto');
+            
+            // Play massive win audio
+            SlotAudio.playWin();
+            
+            // Tick increments interpolator
+            let start = 0;
+            let duration = 2200; // 2.2 seconds duration
+            let startTime = null;
+            
+            function stepAnimation(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const currentVal = Math.floor(start + easeProgress * amount);
+                
+                countLabel.innerText = `Rp ${currentVal.toLocaleString('id-ID')}`;
+                
+                // Play arcade ticks periodically
+                if (Math.random() < 0.15 && progress < 0.95) {
+                    SlotAudio.playMultiplier();
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(stepAnimation);
+                } else {
+                    countLabel.innerText = `Rp ${amount.toLocaleString('id-ID')}`;
+                    SlotAudio.playWin();
+                    
+                    // Shake camera for extra juice
+                    try {
+                        const scene = window.game?.scene?.scenes[0];
+                        if (scene) {
+                            scene.cameras.main.shake(250, 0.008);
+                        }
+                    } catch(e) {}
+                    
+                    // Retain highlight briefly
+                    setTimeout(() => {
+                        overlay.classList.remove('opacity-100', 'pointer-events-auto');
+                        overlay.classList.add('opacity-0', 'pointer-events-none');
+                        
+                        setTimeout(() => {
+                            if (callback) callback();
+                        }, 500);
+                    }, 2200);
+                }
+            }
+            
+            requestAnimationFrame(stepAnimation);
         }
     </script>
 </body>
