@@ -1,0 +1,6 @@
+{
+  "name": "Tumble Slot Game Prototype",
+  "description": "A self-contained HTML5 slot game prototype built with Phaser 3 featuring a 6x5 grid, scatter pays, and custom recursive cascade mechanics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

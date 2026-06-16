@@ -1,0 +1,1690 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bangkibo Sloter - Tumble Slot Game Prototype</title>
+    <!-- Tailwind CSS HTML CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phaser 3 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <!-- Google Fonts: Inter and Space Grotesk -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        olympus: {
+                            gold: '#D4AF37',
+                            dark: '#070913',
+                            cell: '#131722',
+                            border: '#1E2333',
+                            purple: '#2E1A47',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0b0a1d;
+            background: radial-gradient(circle at center, #1a1a40 0%, #0b0a1d 100%);
+            overscroll-behavior: none;
+        }
+        /* Custom scrollbar styling for the activity log container */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(13, 17, 30, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.5);
+        }
+        .text-gold-shadow {
+            text-shadow: 0 0 8px rgba(212,175,55,0.7);
+        }
+        .text-neon-green {
+            text-shadow: 0 0 10px rgba(52,199,89,0.4);
+        }
+        
+        /* Geometric Balance Theme Classes */
+        .geometry-container {
+            border: 4px solid #d4af37;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
+        }
+        .geometry-multiplier-badge {
+            background: linear-gradient(135deg, #d4af37, #f9f295);
+            color: #4a3500;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+            font-weight: 900;
+            border: 1px solid #7a6100;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+        }
+        .geometry-spin-btn {
+            background: linear-gradient(to bottom, #ffd700, #b8860b);
+            border: 3px solid #7a6100;
+            box-shadow: 0 6px 0 #7a6100, 0 12px 20px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .geometry-spin-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #7a6100, 0 6px 10px rgba(0,0,0,0.5);
+        }
+        @keyframes pulse-swell {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 6px 0 #7a6100, 0 12px 20px rgba(0,0,0,0.5);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 6px 0 #7a6100, 0 12px 25px rgba(212, 175, 55, 0.85);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 6px 0 #7a6100, 0 12px 20px rgba(0,0,0,0.5);
+            }
+        }
+        .animate-spin-swell {
+            animation: pulse-swell 1.2s ease-in-out infinite;
+        }
+        .geometry-stat-box {
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid #4a3500;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.85);
+        }
+        .hud-display-box {
+            background: rgba(11, 10, 29, 0.9);
+            border: 1px solid #4a3500;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-200 min-h-screen flex flex-col justify-between p-4 md:p-6 overflow-x-hidden selection:bg-yellow-500 selection:text-black">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-4 border-b border-yellow-500/20 mb-4 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg border border-yellow-400/50">
+                <span class="font-display font-black text-[#070913] text-xl">⚡</span>
+            </div>
+            <div>
+                <h1 class="font-display font-black text-2xl tracking-widest text-[#D4AF37] text-gold-shadow uppercase">
+                    BANGKIBO<span class="text-white"> SLOTER</span>
+                </h1>
+                <p class="text-[10px] text-gray-400 tracking-wider uppercase font-mono">SELALU ADA KESEMPATAN DALAM KEGABUTAN</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- Dev Info Banner -->
+            <span class="px-2.5 py-1 text-[11px] font-mono tracking-wider text-yellow-500 bg-yellow-950/40 rounded-full border border-yellow-500/25">
+                ● SCATTER PAYS (8+ SAME)
+            </span>
+            <span class="px-2.5 py-1 text-[11px] font-mono tracking-wider text-emerald-400 bg-emerald-950/40 rounded-full border border-emerald-500/20">
+                ● 6x5 CASCADE CASCADE
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <main class="w-full max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch my-auto">
+        
+        <!-- Left Panel: Payout Multipliers List -->
+        <section class="xl:col-span-3 flex flex-col justify-between gap-4 geometry-stat-box rounded-2xl p-4 shadow-2xl">
+            <div>
+                <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-3">
+                    <h2 class="font-display text-base font-bold text-yellow-500">PAYTABLE (DAFTAR SKOR)</h2>
+                    <span class="text-[10px] text-gray-400 font-mono">Scales with Bet</span>
+                </div>
+                <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                    Kemenangan terjadi jika ada minimal <b>8 simbol sejenis</b> muncul di mana saja pada layar. Semakin banyak jumlahnya, semakin besar bayarannya!
+                </p>
+                <div id="payout-table-list" class="space-y-1">
+                    <!-- Dynamic payout elements will render here -->
+                </div>
+            </div>
+            
+            <div class="bg-slate-900/40 border border-gray-800 rounded-lg p-3 text-xs leading-relaxed text-gray-400">
+                <span class="text-yellow-500 font-bold">INFO SYARAT:</span> Bet dihitung di setiap Spin (Rp 2.000 Default). Jumlah total kemenangan tumble akan langsung ditransaksikan ke saldo Credit setelah seluruh cascade berantai selesai.
+            </div>
+        </section>
+
+        <!-- Center Panel: The Game Canvas and Status Bar -->
+        <section class="lg:col-span-12 xl:col-span-5 flex flex-col items-center justify-center gap-4 w-full">
+            <!-- Game Canvas Mount point -->
+            <div class="relative group w-full max-w-[500px] mx-auto">
+                <!-- Gold ambient glow back ring -->
+                <div class="absolute -inset-1.5 bg-gradient-to-tr from-amber-500 to-yellow-600 rounded-3xl blur-md opacity-35 group-hover:opacity-60 transition duration-500"></div>
+                
+                <!-- Main mount wrapper -->
+                <div id="phaser-game-frame" class="relative rounded-2xl overflow-hidden geometry-container p-1 bg-[#141428] w-full">
+                    <!-- Multipliers Overlay Container -->
+                    <div id="multipliers-overlay" class="absolute top-4 right-4 z-10 flex flex-col gap-2 pointer-events-none transition-all duration-300">
+                        <!-- Dynamic linear-gradient multiplier widgets -->
+                    </div>
+                    
+                    <!-- Free Spins Trigger & Retrigger Banner -->
+                    <div id="free-spins-banner" class="absolute inset-0 z-20 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+                        <!-- Shining rotating rings and stars -->
+                        <div class="absolute w-44 h-44 rounded-full border border-amber-500/20 animate-spin"></div>
+                        <div class="absolute w-60 h-60 rounded-full border border-yellow-500/10 animate-spin"></div>
+                        
+                        <div class="z-10 animate-bounce">
+                            <span class="text-[10px] font-black tracking-widest text-amber-500 uppercase">BERKAH ZEUS</span>
+                            <h1 id="fs-banner-title" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-300 drop-shadow-[0_4px_10px_rgba(245,158,11,0.5)] uppercase tracking-wider my-1">
+                                FREE SPINS
+                            </h1>
+                            <span class="text-xs font-bold text-gray-300 block tracking-wide">TELAH TERPICU!</span>
+                        </div>
+                        
+                        <!-- Spin count bubble -->
+                        <div id="fs-banner-count-box" class="z-10 px-5 py-3 rounded-2xl bg-gradient-to-b from-amber-500 to-yellow-600 border border-yellow-400 shadow-[0_0_20px_rgba(245,158,11,0.6)] text-slate-950 font-black flex flex-col justify-center items-center">
+                            <span class="text-4xl" id="fs-banner-count">10</span>
+                            <span class="text-[9px] uppercase font-bold tracking-widest mt-0.5">PUTARAN GRATIS</span>
+                        </div>
+                        
+                        <!-- Persistent message -->
+                        <div class="z-10 text-[10px] font-mono text-amber-400 animate-pulse mt-2 uppercase tracking-widest">
+                            🔥 MULTIPLIER GLOBAL PERSISTEN AKTIF! 🔥
+                        </div>
+                    </div>
+
+                    <!-- Free Spins Finished Celebration -->
+                    <div id="free-spins-summary" class="absolute inset-0 z-20 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center gap-5 text-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+                        <div class="z-10">
+                            <span class="text-xs font-black tracking-widest text-emerald-400 uppercase">SELAMAT!</span>
+                            <h2 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 uppercase tracking-widest my-1">
+                                FREE SPINS SELESAI
+                            </h2>
+                        </div>
+                        
+                        <!-- Celebration Stats -->
+                        <div class="z-10 bg-slate-950/80 p-5 rounded-2xl border border-emerald-500/30 shadow-[0_0_25px_rgba(16,185,129,0.3)] min-w-[280px]">
+                            <span class="text-[9px] font-bold text-gray-400 block tracking-widest uppercase mb-1">TOTAL KEMENANGAN AKHIR</span>
+                            <p id="fs-summary-multiplier" class="text-xs text-amber-400 font-bold block mb-1">GLOBAL MULTIPLIER: X24</p>
+                            <p id="fs-summary-total" class="text-2xl font-black text-emerald-400 font-mono">Rp 540.000</p>
+                        </div>
+                        
+                        <!-- CTA button to close and return to normal spin -->
+                        <button onclick="closeFreeSpinsSummary()" class="z-10 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 font-bold text-white tracking-widest text-xs hover:brightness-110 cursor-pointer shadow-md transition-all">
+                            LANJUTKAN GAME
+                        </button>
+                    </div>
+                    
+                    <!-- Canvas holder -->
+                    <div id="phaser-grid-mount" class="w-full aspect-[5/6] bg-transparent mx-auto relative overflow-hidden flex items-center justify-center"></div>
+                </div>
+            </div>
+            
+            <!-- Cascade Evaluation Progress Bar -->
+            <div id="cascade-progress-container" class="w-full max-w-[500px] bg-slate-950/80 border border-gray-800/50 rounded-full h-3.5 p-0.5 overflow-hidden shadow-inner opacity-0 transition-all duration-300 flex items-center">
+                <div id="cascade-progress-bar" class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 h-full w-0 rounded-full shadow-[0_0_8px_#f59e0b] transition-all duration-75 ease-out"></div>
+            </div>
+            
+            <!-- Tumble Feedback Bar -->
+            <div id="tumble-ticker" class="w-full max-w-[500px] geometry-stat-box rounded-xl py-3 px-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span id="ticker-bullet" class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-ping"></span>
+                    <span id="ticker-text" class="text-xs font-mono tracking-wider text-gray-400">BOARD COLD - KLIk SPIN</span>
+                </div>
+                <div id="ticker-win-value" class="text-sm font-bold text-yellow-400">
+                    Tumble Gain: Rp 0
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Panel: Balance Display, Controls, & Logging History -->
+        <section class="xl:col-span-4 flex flex-col justify-between gap-4 geometry-stat-box rounded-2xl p-4 shadow-2xl">
+            <!-- User Status HUD -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center pb-2 border-b border-gray-800">
+                    <h2 class="font-display text-base font-bold text-yellow-500">USER HUD CONTROLS</h2>
+                    <span class="text-[10px] text-gray-500 font-mono">Live Session</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Available Credit -->
+                    <div class="hud-display-box rounded-xl p-3 shadow-inner relative overflow-hidden group">
+                        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500 transform scale-x-100"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-[#d4af37] tracking-wider">CREDIT BAL</span>
+                            <button onclick="refillBalance()" class="text-[9px] text-yellow-500 bg-yellow-950/40 hover:bg-yellow-900/80 border border-[#7a6100] px-1.5 py-0.5 rounded cursor-pointer" title="Refill saldo">Refill</button>
+                        </div>
+                        <p id="credit-display" class="text-lg font-black text-emerald-400 text-neon-green font-mono mt-1">Rp 10.000.000</p>
+                    </div>
+                    
+                    <!-- Ronde Win -->
+                    <div class="hud-display-box rounded-xl p-3 shadow-inner relative overflow-hidden">
+                        <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-yellow-500 to-amber-500"></div>
+                        <span class="text-[10px] font-bold text-[#d4af37] tracking-wider">RONDE WIN</span>
+                        <p id="win-display" class="text-lg font-black text-yellow-400 text-gold-shadow font-mono mt-1">Rp 0</p>
+                    </div>
+                </div>
+
+                <!-- Free Spins HUD Panel (Hidden by default) -->
+                <div id="free-spins-hud" class="hidden rounded-xl p-3.5 bg-gradient-to-r from-red-950/70 via-amber-950/60 to-red-950/70 border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.4)] animate-pulse relative overflow-hidden flex flex-col gap-2">
+                    <div class="absolute -right-6 -top-6 w-16 h-16 bg-amber-500/10 rounded-full blur-xl"></div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-black text-amber-400 tracking-widest uppercase flex items-center gap-1">
+                            🔥 FREE SPINS ACTIVE
+                        </span>
+                        <span id="free-spins-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-red-600 text-white animate-bounce">
+                            SPINS LEFT: <span id="free-spins-left">10</span>
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-1 text-center">
+                        <div class="bg-black/40 rounded-lg p-2 border border-amber-500/20">
+                            <span class="text-[9px] font-bold text-gray-400 block tracking-wider uppercase">FS TOTAL WIN</span>
+                            <span id="free-spins-total-win" class="text-sm font-black text-amber-300 font-mono">Rp 0</span>
+                        </div>
+                        <div class="bg-black/40 rounded-lg p-2 border border-amber-500/20">
+                            <span class="text-[9px] font-bold text-gray-400 block tracking-wider uppercase">GLOBAL MULTIPLIER</span>
+                            <span id="free-spins-multiplier" class="text-base font-black text-amber-400 font-mono">X0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bet Size Selection -->
+                <div class="hud-display-box p-3 rounded-xl">
+                    <span class="text-xs text-yellow-500 font-bold block mb-2 tracking-wider">PILIH BET (TARUHAN):</span>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button onclick="selectBet(1000)" class="bet-btn p-2 rounded-lg bg-black/40 text-xs font-bold text-gray-400 border border-gray-800 hover:border-yellow-500/50 transition cursor-pointer" id="bet-1000">1.000</button>
+                        <button onclick="selectBet(2000)" class="bet-btn p-2 rounded-lg bg-yellow-500/20 text-xs font-bold text-yellow-500 border border-yellow-500 hover:bg-yellow-500/30 transition cursor-pointer" id="bet-2000">2.000</button>
+                        <button onclick="selectBet(5000)" class="bet-btn p-2 rounded-lg bg-black/40 text-xs font-bold text-gray-400 border border-gray-800 hover:border-yellow-500/50 transition cursor-pointer" id="bet-5000">5.000</button>
+                        <button onclick="selectBet(10000)" class="bet-btn p-2 rounded-lg bg-black/40 text-xs font-bold text-gray-400 border border-gray-800 hover:border-yellow-500/50 transition cursor-pointer" id="bet-10000">10.000</button>
+                    </div>
+                </div>
+
+                <!-- Controls Tweaks -->
+                <div class="grid grid-cols-2 gap-3 mb-1">
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-900/40 rounded-lg border border-gray-800 cursor-pointer hover:bg-slate-900/60 select-none">
+                        <input id="fast-play-chk" type="checkbox" onchange="toggleFastPlay()" class="w-4 h-4 rounded text-yellow-500 bg-gray-900 border-gray-800 focus:ring-0">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-gray-200">⚡ Fast Play</span>
+                            <span class="text-[8px] text-gray-500">2x Fast Animations</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-900/40 rounded-lg border border-gray-800 cursor-pointer hover:bg-slate-900/60 select-none">
+                        <input id="auto-spin-chk" type="checkbox" onchange="toggleAutoSpin()" class="w-4 h-4 rounded text-yellow-500 bg-gray-900 border-gray-800 focus:ring-0">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-gray-200">🔁 Auto Spin</span>
+                            <span class="text-[8px] text-gray-500">Spin continuously</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Ledger Logs of Spin Sequence -->
+            <div class="flex-1 flex flex-col justify-between my-2 min-h-[160px] max-h-[190px]">
+                <div class="flex items-center justify-between pb-1 border-b border-gray-900">
+                    <span class="text-[10px] font-mono tracking-wider font-bold text-gray-400">LEDGER HISTORY LOGS</span>
+                    <button onclick="clearLogs()" class="text-[9px] text-gray-500 hover:text-gray-300 font-mono">Clear</button>
+                </div>
+                <div id="ledger-history-wrapper" class="flex-1 overflow-y-auto bg-slate-950/60 rounded-xl p-3 border border-gray-900 mt-1.5 font-mono text-[11px] leading-relaxed select-text flex flex-col-reverse justify-end gap-1">
+                    <!-- Logs printed dynamically downwards (or prepended) -->
+                    <div class="text-gray-500">● Olympus grid initialized. Tap spin table layout.</div>
+                </div>
+            </div>
+
+            <!-- Main Big SPIN Action CTA Button -->
+            <button id="spin-btn" onclick="triggerSpin()" class="w-full h-16 rounded-xl geometry-spin-btn text-[#4a3500] font-black text-xl tracking-wider cursor-pointer hover:brightness-110 flex items-center justify-center">
+                <span>⚡ SPIN</span>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Bottom Footer Signoff -->
+    <footer class="w-full max-w-7xl mx-auto pt-4 border-t border-gray-900 flex justify-between items-center text-[10px] text-gray-500 font-mono mt-4">
+        <div>PROTASI GAME ONLINE • POWERED BY PHASER 3</div>
+        <div class="text-yellow-500/40">GATES OF OLYMPUS INSPIRED</div>
+    </footer>
+
+    <!-- Dedicated Game Logics Scripting -->
+    <script>
+        // Core game state
+        let credit = 10000000;
+        let bet = 2000;
+        let win = 0;
+        
+        let isSpinning = false;
+        let currentTumbleWin = 0;
+        let autoSpin = false;
+        let fastPlay = false;
+        
+        let autoSpinTimer = null;
+        let spinIdleTimer = null;
+        let activeMultipliers = [];
+
+        // Free Spins state parameters
+        let freeSpinsRemaining = 0;
+        let isFreeSpinsActive = false;
+        let globalFreeSpinsMultiplier = 0;
+        let freeSpinsTotalWinAccumulator = 0;
+        let scatterTriggeredThisRound = false;
+        let scatterCountThisRound = 0;
+
+        function updateFreeSpinsHUD() {
+            const fsHud = document.getElementById('free-spins-hud');
+            const fsLeft = document.getElementById('free-spins-left');
+            const fsTotalWin = document.getElementById('free-spins-total-win');
+            const fsMultiplier = document.getElementById('free-spins-multiplier');
+            
+            if (isFreeSpinsActive) {
+                if (fsHud) {
+                    fsHud.classList.remove('hidden');
+                    fsHud.classList.add('flex');
+                }
+                if (fsLeft) fsLeft.innerText = freeSpinsRemaining;
+                if (fsTotalWin) fsTotalWin.innerText = `Rp ${freeSpinsTotalWinAccumulator.toLocaleString('id-ID')}`;
+                if (fsMultiplier) fsMultiplier.innerText = `X${globalFreeSpinsMultiplier}`;
+            } else {
+                if (fsHud) {
+                    fsHud.classList.remove('flex');
+                    fsHud.classList.add('hidden');
+                }
+            }
+        }
+
+        function resetSpinIdleTimer() {
+            if (spinIdleTimer) {
+                clearTimeout(spinIdleTimer);
+                spinIdleTimer = null;
+            }
+            const btn = document.getElementById('spin-btn');
+            if (btn) {
+                btn.classList.remove('animate-spin-swell');
+            }
+            if (!isSpinning && !autoSpin && credit >= bet) {
+                spinIdleTimer = setTimeout(() => {
+                    const currentBtn = document.getElementById('spin-btn');
+                    if (!isSpinning && !autoSpin && credit >= bet && currentBtn) {
+                        currentBtn.classList.add('animate-spin-swell');
+                    }
+                }, 10000);
+            }
+        }
+
+        function showFreeSpinsTrigger(count, isRetrigger) {
+            const banner = document.getElementById('free-spins-banner');
+            const bannerTitle = document.getElementById('fs-banner-title');
+            const bannerCount = document.getElementById('fs-banner-count');
+            
+            if (banner && bannerTitle && bannerCount) {
+                bannerTitle.innerText = isRetrigger ? "RE-TRIGGER!" : "FREE SPINS";
+                bannerCount.innerText = count;
+                
+                banner.classList.remove('opacity-0', 'pointer-events-none');
+                banner.classList.add('opacity-100', 'pointer-events-auto');
+                
+                // Play awesome victory chimes
+                SlotAudio.playWin();
+                setTimeout(() => {
+                    SlotAudio.playMultiplier();
+                }, 400);
+                
+                // Hide after 3.2 seconds
+                setTimeout(() => {
+                    banner.classList.remove('opacity-100', 'pointer-events-auto');
+                    banner.classList.add('opacity-0', 'pointer-events-none');
+                }, 3200);
+            }
+        }
+
+        function showFreeSpinsSummary() {
+            const summary = document.getElementById('free-spins-summary');
+            const totalText = document.getElementById('fs-summary-total');
+            const multText = document.getElementById('fs-summary-multiplier');
+            
+            if (summary && totalText && multText) {
+                totalText.innerText = `Rp ${freeSpinsTotalWinAccumulator.toLocaleString('id-ID')}`;
+                multText.innerText = `GLOBAL MULTIPLIER AKHIR: X${globalFreeSpinsMultiplier}`;
+                
+                summary.classList.remove('opacity-0', 'pointer-events-none');
+                summary.classList.add('opacity-100', 'pointer-events-auto');
+                
+                SlotAudio.playWin();
+            }
+        }
+        
+        function closeFreeSpinsSummary() {
+            const summary = document.getElementById('free-spins-summary');
+            if (summary) {
+                summary.classList.remove('opacity-100', 'pointer-events-auto');
+                summary.classList.add('opacity-0', 'pointer-events-none');
+            }
+            
+            // Reset FS mode states
+            isFreeSpinsActive = false;
+            freeSpinsRemaining = 0;
+            globalFreeSpinsMultiplier = 0;
+            freeSpinsTotalWinAccumulator = 0;
+            
+            addLog("Kembali ke permainan utama.", "text-gray-400 font-bold");
+            updateFreeSpinsHUD();
+            updateUI();
+            
+            setSpinButtonState(true);
+            
+            if (autoSpin) {
+                triggerSpin();
+            }
+        }
+
+        // Synth Sound Engine using Web Audio API (integrates with Phaser's Sound Context)
+        const SlotAudio = {
+            ctx: null,
+            
+            init() {
+                if (this.ctx) return;
+                try {
+                    // Try to use Phaser's active sound context if possible, otherwise construct a standard one
+                    if (window.game && window.game.sound && window.game.sound.context) {
+                        this.ctx = window.game.sound.context;
+                    } else {
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        this.ctx = new AudioContextClass();
+                    }
+                } catch (e) {
+                    console.warn("Web Audio API not supported", e);
+                }
+            },
+            
+            resume() {
+                this.init();
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            
+            playSpin() {
+                this.resume();
+                if (!this.ctx) return;
+                
+                const now = this.ctx.currentTime;
+                // Synthesize a fast sequence of cascade tumble drops (low frequencies)
+                const count = fastPlay ? 3 : 5;
+                for (let i = 0; i < count; i++) {
+                    const time = now + i * 0.08;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220 - (i * 25), time);
+                    osc.frequency.exponentialRampToValueAtTime(70, time + 0.12);
+                    
+                    gain.gain.setValueAtTime(0.08, time);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    osc.start(time);
+                    osc.stop(time + 0.12);
+                }
+            },
+            
+            playWin() {
+                this.resume();
+                if (!this.ctx) return;
+                
+                const now = this.ctx.currentTime;
+                // Arpeggio: major bright chord sequence (C5, E5, G5, C6) for scatters
+                const pitches = [523.25, 659.25, 783.99, 1046.50];
+                
+                pitches.forEach((freq, idx) => {
+                    const time = now + idx * 0.07;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, time);
+                    
+                    // Gentle vibrating frequency modulation for premium slot chime feel
+                    const lfo = this.ctx.createOscillator();
+                    const lfoGain = this.ctx.createGain();
+                    lfo.frequency.value = 16;
+                    lfoGain.gain.value = 8;
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(osc.frequency);
+                    
+                    gain.gain.setValueAtTime(0.12, time);
+                    gain.gain.setValueAtTime(0.12, time + 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + 0.28);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    
+                    lfo.start(time);
+                    osc.start(time);
+                    
+                    lfo.stop(time + 0.28);
+                    osc.stop(time + 0.28);
+                });
+            },
+            
+            playMultiplier() {
+                this.resume();
+                if (!this.ctx) return;
+                
+                const now = this.ctx.currentTime;
+                // Divine flash blast sound effect using modulated sawtooth
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(1500, now + 0.25);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.5);
+                
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.18, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                // Secondary high square chirp for extra impact sparkle
+                const beep = this.ctx.createOscillator();
+                const beepGain = this.ctx.createGain();
+                
+                beep.type = 'square';
+                beep.frequency.setValueAtTime(440, now);
+                beep.frequency.exponentialRampToValueAtTime(2200, now + 0.22);
+                
+                beepGain.gain.setValueAtTime(0.06, now);
+                beepGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                
+                beep.connect(beepGain);
+                beepGain.connect(this.ctx.destination);
+                
+                osc.start(now);
+                beep.start(now);
+                
+                osc.stop(now + 0.55);
+                beep.stop(now + 0.25);
+            }
+        };
+
+        function updateMultipliersUI() {
+            const container = document.getElementById('multipliers-overlay');
+            if (!container) return;
+            if (activeMultipliers.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            container.innerHTML = activeMultipliers.map(mult => `
+                <div class="geometry-multiplier-badge px-3 py-1.5 rounded-full text-xs font-black flex items-center justify-center gap-1 shadow-md animate-bounce uppercase">
+                    <span>⚡ X${mult}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateProgressBar(percentage) {
+            const bar = document.getElementById('cascade-progress-bar');
+            const container = document.getElementById('cascade-progress-container');
+            if (bar && container) {
+                container.classList.remove('opacity-0');
+                container.classList.add('opacity-100');
+                bar.style.width = `${percentage}%`;
+            }
+        }
+
+        function animateProgressBar(scene, duration) {
+            const bar = document.getElementById('cascade-progress-bar');
+            const container = document.getElementById('cascade-progress-container');
+            if (!bar || !container) return;
+
+            // Stop any existing progress tween on the scene
+            if (scene._progressTween) {
+                scene._progressTween.stop();
+            }
+
+            container.classList.remove('opacity-0');
+            container.classList.add('opacity-100');
+            bar.style.width = '0%';
+
+            scene._progressTween = scene.tweens.add({
+                targets: { progress: 0 },
+                progress: 100,
+                duration: duration,
+                ease: 'Linear',
+                onUpdate: (tween, target) => {
+                    bar.style.width = `${target.progress}%`;
+                }
+            });
+        }
+
+        function hideProgressBar() {
+            const container = document.getElementById('cascade-progress-container');
+            if (container) {
+                container.classList.remove('opacity-100');
+                container.classList.add('opacity-0');
+            }
+        }
+
+        // Grid metadata: columns, rows, storage
+        const COLS = 5;
+        const ROWS = 6;
+        let grid = Array(COLS).fill(null).map(() => Array(ROWS).fill(null));
+
+        // Core HTML element referrers
+        const creditDisplay = document.getElementById('credit-display');
+        const winDisplay = document.getElementById('win-display');
+        const tickerText = document.getElementById('ticker-text');
+        const tickerBullet = document.getElementById('ticker-bullet');
+        const tickerWinVal = document.getElementById('ticker-win-value');
+        const ledgerHistory = document.getElementById('ledger-history-wrapper');
+
+        // Initial setup and payout graphics rendering
+        function initializeGameUI() {
+            renderPayoutTable();
+            updateUI();
+            resetSpinIdleTimer();
+        }
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            initializeGameUI();
+        } else {
+            window.addEventListener('DOMContentLoaded', initializeGameUI);
+        }
+
+        // Update statistical HUD indicators
+        function updateUI() {
+            creditDisplay.innerText = `Rp ${credit.toLocaleString('id-ID')}`;
+            winDisplay.innerText = `Rp ${win.toLocaleString('id-ID')}`;
+        }
+
+        function updateWinUI() {
+            tickerWinVal.innerText = `Tumble Gain: Rp ${currentTumbleWin.toLocaleString('id-ID')}`;
+        }
+
+        // Ledger History activity reporter
+        function addLog(msg, colorClass = "text-gray-300") {
+            const span = document.createElement('div');
+            span.className = `pb-0.5 border-b border-gray-950/20 last:border-0 ${colorClass}`;
+            
+            const timestamp = new Date().toLocaleTimeString('id-ID', { hour12: false });
+            span.innerHTML = `<span class="text-gray-600 font-bold mr-1.5">[${timestamp}]</span>${msg}`;
+            
+            ledgerHistory.appendChild(span);
+            // Auto scroll downwards
+            ledgerHistory.scrollTop = ledgerHistory.scrollHeight;
+        }
+
+        function clearLogs() {
+            ledgerHistory.innerHTML = `<div class="text-gray-500">● Logs cleared. Board status active.</div>`;
+        }
+
+        // Bet selectors handler
+        function selectBet(newVal) {
+            if (isSpinning) return;
+            bet = newVal;
+            
+            // Adjust payouts table dynamically using multipliers
+            renderPayoutTable();
+            addLog(`💰 BET diubah ke: <b>Rp ${bet.toLocaleString('id-ID')}</b>`, "text-yellow-400/80");
+
+            // Toggle active styling
+            for (let b of [1000, 2000, 5000, 10000]) {
+                const btn = document.getElementById(`bet-${b}`);
+                if (b === newVal) {
+                    btn.className = "bet-btn p-2 rounded-lg bg-yellow-500/20 text-xs font-bold text-yellow-500 border border-yellow-500 hover:bg-yellow-500/30 transition cursor-pointer";
+                } else {
+                    btn.className = "bet-btn p-2 rounded-lg bg-black/40 text-xs font-bold text-gray-400 border border-gray-800 hover:border-yellow-500/50 transition cursor-pointer";
+                }
+            }
+            resetSpinIdleTimer();
+        }
+
+        // Feature toggle state handlers
+        function toggleFastPlay() {
+            fastPlay = document.getElementById('fast-play-chk').checked;
+            addLog(`⚡ Fast Play: ${fastPlay ? "<b>AKTIF</b> (Animasi dipercepat)" : "<b>NONAKTIF</b>"}`, "text-blue-400");
+        }
+
+        function toggleAutoSpin() {
+            autoSpin = document.getElementById('auto-spin-chk').checked;
+            addLog(`🔁 Auto Spin: ${autoSpin ? "<b>AKTIF</b> (Putaran Otomatis)" : "<b>NONAKTIF</b>"}`, "text-purple-400");
+            
+            // Trigger immediately if idle
+            if (autoSpin && !isSpinning && credit >= bet) {
+                triggerSpin();
+            } else {
+                resetSpinIdleTimer();
+            }
+        }
+
+        function refillBalance() {
+            if (isSpinning) return;
+            credit = 10000000;
+            updateUI();
+            addLog("💸 Saldo credit diisi ulang kembali menjadi <b>Rp 10.000.000</b>!", "text-emerald-400");
+            resetSpinIdleTimer();
+        }
+
+        // Payout evaluation table renderer
+        function renderPayoutTable() {
+            const colors = {
+                red:    { name: 'Red Crest', min: 2.00, mid: 5.00, max: 20.00, css: 'border-l-red-500/80 bg-red-950/10' },
+                purple: { name: 'Purple Star', min: 1.60, mid: 3.00, max: 10.00, css: 'border-l-purple-500/80 bg-purple-950/10' },
+                yellow: { name: 'Yellow Crown', min: 1.00, mid: 2.00, max: 6.00, css: 'border-l-yellow-600/80 bg-yellow-950/10' },
+                green:  { name: 'Green Jewel', min: 0.80, mid: 1.50, max: 4.00, css: 'border-l-emerald-500/80 bg-emerald-950/10' },
+                blue:   { name: 'Blue Ring', min: 0.50, mid: 1.00, max: 2.00, css: 'border-l-blue-500/80 bg-blue-950/10' }
+            };
+            
+            const scaleFactor = bet / 2000; // standard Rp 2.000 is raw index
+            
+            let html = '';
+            for (const key in colors) {
+                const item = colors[key];
+                const minVal = Math.round(item.min * 1000 * scaleFactor);
+                const midVal = Math.round(item.mid * 1000 * scaleFactor);
+                const maxVal = Math.round(item.max * 1000 * scaleFactor);
+                
+                let shapeHtml = '';
+                if (key === 'red') shapeHtml = `<div class="w-4 h-4 bg-gradient-to-tr from-red-600 to-orange-500 rounded-sm outline outline-1 outline-yellow-400/40 inline-block mr-2.5"></div>`;
+                else if (key === 'purple') shapeHtml = `<div class="w-4 h-4 bg-gradient-to-tr from-fuchsia-600 to-indigo-600 rotate-45 inline-block mr-2.5 outline outline-1 outline-yellow-400/40"></div>`;
+                else if (key === 'yellow') shapeHtml = `<div class="w-4.5 h-4.5 bg-gradient-to-tr from-yellow-500 to-amber-400 rounded-full inline-block mr-2.5 shadow-[0_0_8px_rgba(245,158,11,0.5)] border border-yellow-300"></div>`;
+                else if (key === 'green') shapeHtml = `<div class="w-4 h-4 bg-gradient-to-tr from-emerald-600 to-teal-500 rounded-lg inline-block mr-2.5 outline outline-1 outline-yellow-400/30"></div>`;
+                else if (key === 'blue') shapeHtml = `<div class="w-4 h-4 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full inline-block mr-2.5 shadow-md"></div>`;
+                
+                html += `
+                <div class="flex items-center justify-between p-2 rounded-xl border-l-[3px] border-y border-r border-[#1a1e2f]/50 border-y-[#1a1e2f]/20 border-r-[#1a1e2f]/20 ${item.css}">
+                    <div class="flex items-center">
+                        ${shapeHtml}
+                        <span class="text-xs font-bold text-gray-200 capitalize font-display">${item.name}</span>
+                    </div>
+                    <div class="text-right text-[10px] font-mono">
+                        <span class="text-gray-400">8+:</span> <span class="text-yellow-400 font-bold">Rp ${minVal.toLocaleString('id-ID')}</span> | 
+                        <span class="text-gray-400">10+:</span> <span class="text-yellow-400 font-bold">Rp ${midVal.toLocaleString('id-ID')}</span> | 
+                        <span class="text-amber-400 font-bold">12+:</span> <span class="text-yellow-400 font-black">Rp ${maxVal.toLocaleString('id-ID')}</span>
+                    </div>
+                </div>
+                `;
+            }
+            document.getElementById('payout-table-list').innerHTML = html;
+        }
+
+        // Disable or release human UI inputs during cascade execution
+        function setSpinButtonState(enabled) {
+            const btn = document.getElementById('spin-btn');
+            const betButtons = document.querySelectorAll('.bet-btn');
+            
+            if (enabled) {
+                isSpinning = false;
+                btn.disabled = false;
+                btn.style.opacity = '1.0';
+                btn.style.cursor = 'pointer';
+                btn.classList.add('hover:brightness-110');
+                btn.innerHTML = `<span>⚡ SPIN UNTUK BERMAIN</span>`;
+                
+                tickerBullet.className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                tickerText.innerText = "READY FOR MATCH - DAPATKAN 8+ COCOK";
+                
+                betButtons.forEach(b => {
+                    b.disabled = false;
+                    b.style.opacity = '1.0';
+                    b.style.cursor = 'pointer';
+                });
+            } else {
+                isSpinning = true;
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                btn.classList.remove('hover:brightness-110');
+                btn.innerHTML = `
+                    <div class="flex items-center justify-center space-x-2">
+                        <svg class="animate-spin h-5 w-5 text-[#4a3500]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="font-bold text-[#4a3500]">CASCADE TUMBLING...</span>
+                    </div>
+                `;
+                
+                tickerBullet.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping";
+                tickerText.innerText = "EVALUATING SYMBOLS ON FIELD...";
+                
+                // Keep bets unclickable during active spins to protect transaction logs
+                betButtons.forEach(b => {
+                    b.disabled = true;
+                    b.style.opacity = '0.4';
+                    b.style.cursor = 'not-allowed';
+                });
+            }
+            resetSpinIdleTimer();
+        }
+
+        // Trigger action
+        function triggerSpin() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+
+            if (isFreeSpinsActive && freeSpinsRemaining > 0) {
+                freeSpinsRemaining--;
+                updateFreeSpinsHUD();
+                addLog(`🔥 PUTARAN GRATIS MULAI! Sisa FS: <b>${freeSpinsRemaining} Putaran</b>. Multiplier Global: <b>X${globalFreeSpinsMultiplier}</b>`, "text-amber-400 font-extrabold");
+            } else {
+                if (credit < bet) {
+                    addLog(`⚠️ SALDO HABIS! Credit tidak mencukupi untuk Bet Rp ${bet.toLocaleString('id-ID')}. Klik tombol "Refill" di saldo.`, "text-red-400 font-bold");
+                    isSpinning = false;
+                    
+                    // Disable Auto Spin automatic loops
+                    if (autoSpin) {
+                        autoSpin = false;
+                        document.getElementById('auto-spin-chk').checked = false;
+                    }
+                    resetSpinIdleTimer();
+                    return;
+                }
+
+                // Deduct the slot investment
+                credit -= bet;
+                addLog(`🎰 SPIN! Bet: <b>Rp ${bet.toLocaleString('id-ID')}</b>. Credit sisa: Rp ${credit.toLocaleString('id-ID')}`, "text-gray-400 font-medium");
+            }
+            
+            // Reset active round multipliers
+            activeMultipliers = [];
+            updateMultipliersUI();
+
+            win = 0.00;
+            currentTumbleWin = 0.00;
+            scatterTriggeredThisRound = false;
+            scatterCountThisRound = 0;
+            
+            updateUI();
+            updateWinUI();
+            
+            setSpinButtonState(false);
+            
+            // Execute animation clear first
+            let scene = game.scene.scenes[0];
+            clearGridAndAnimate(scene, () => {
+                spawnNewGrid(scene);
+            });
+        }
+
+        /* -----------------------------------------------------------
+           PHASER GAME CODE SETUP
+        ----------------------------------------------------------- */
+        
+        // Phaser config integration
+        const config = {
+            type: Phaser.AUTO,
+            width: 500,
+            height: 600,
+            parent: 'phaser-grid-mount',
+            backgroundColor: 'transparent',
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    debug: false
+                }
+            },
+            scene: {
+                create: create
+            }
+        };
+
+        const game = new Phaser.Game(config);
+
+        function create() {
+            const scene = this;
+            
+            // Generate full-resolution custom element textures
+            createCustomSymbols(scene);
+            
+            // Place the base metallic mesh background on canvas
+            drawBoardBackground(scene);
+            
+            // Spawn default starter grid (just visual cards on load, doesn't score/deduct bet)
+            populateInitialBoard(scene);
+        }
+
+        // Draw programmatical shape symbols to avoid load asset files
+        function createCustomSymbols(scene) {
+            const configs = {
+                red:    { name: 'red', fill: 0xff4d4d, darkFill: 0x990000, secondary: 0xffcc00, shape: 'triangle' },
+                purple: { name: 'purple', fill: 0xa34dff, darkFill: 0x4d0099, secondary: 0xd4af37, shape: 'diamond' },
+                yellow: { name: 'yellow', fill: 0xfff24d, darkFill: 0xb38f00, secondary: 0xffffff, shape: 'star' },
+                green:  { name: 'green', fill: 0x4dff88, darkFill: 0x00802b, secondary: 0x6ee7b7, shape: 'square' },
+                blue:   { name: 'blue', fill: 0x4da3ff, darkFill: 0x0047b3, secondary: 0x93c5fd, shape: 'circle' },
+                scatter:{ name: 'scatter', fill: 0xffcc00, darkFill: 0x663f00, secondary: 0xffffff, shape: 'crown' }
+            };
+
+            Object.values(configs).forEach(cfg => {
+                const g = scene.make.graphics({ x: 0, y: 0, add: false });
+                
+                // Symbol backdrops glow shadow
+                g.fillStyle(0x000000, 0.4);
+                g.fillCircle(40, 40, 38);
+                
+                // Outer gold rims
+                g.lineStyle(3, 0xD4AF37, 1);
+                g.strokeCircle(40, 40, 32);
+                
+                if (cfg.shape === 'circle') {
+                    // Outer dark rim
+                    g.fillStyle(cfg.darkFill, 1);
+                    g.fillCircle(40, 40, 24);
+                    // Inner bright core
+                    g.fillStyle(cfg.fill, 1);
+                    g.fillCircle(40, 40, 16);
+                    // Gold/secondary lens glow highlight
+                    g.lineStyle(2.5, cfg.secondary, 0.95);
+                    g.strokeCircle(37, 37, 8);
+                } 
+                else if (cfg.shape === 'triangle') {
+                    // Outer dark rim triangle crest
+                    g.fillStyle(cfg.darkFill, 1);
+                    const triOuter = new Phaser.Geom.Triangle(40, 15, 12, 61, 68, 61);
+                    g.fillTriangleShape(triOuter);
+                    // Inner bright core
+                    g.fillStyle(cfg.fill, 1);
+                    const triInner = new Phaser.Geom.Triangle(40, 23, 20, 56, 60, 56);
+                    g.fillTriangleShape(triInner);
+                    // Gold highlight
+                    g.lineStyle(2, cfg.secondary, 0.9);
+                    g.strokeTriangle(40, 31, 26, 52, 54, 52);
+                } 
+                else if (cfg.shape === 'square') {
+                    // Outer dark rim square chest
+                    g.fillStyle(cfg.darkFill, 1);
+                    g.fillRoundedRect(17, 17, 46, 46, 10);
+                    // Inner bright core
+                    g.fillStyle(cfg.fill, 1);
+                    g.fillRoundedRect(22, 22, 36, 36, 8);
+                    // Highlight shine
+                    g.lineStyle(2, cfg.secondary, 0.95);
+                    g.strokeRoundedRect(26, 26, 20, 20, 5);
+                } 
+                else if (cfg.shape === 'diamond') {
+                    // Outer dark diamond
+                    g.fillStyle(cfg.darkFill, 1);
+                    g.fillPoints([
+                        { x: 40, y: 12 },
+                        { x: 68, y: 40 },
+                        { x: 40, y: 68 },
+                        { x: 12, y: 40 }
+                    ], true);
+                    // Inner bright diamond
+                    g.fillStyle(cfg.fill, 1);
+                    g.fillPoints([
+                        { x: 40, y: 19 },
+                        { x: 61, y: 40 },
+                        { x: 40, y: 61 },
+                        { x: 19, y: 40 }
+                    ], true);
+                    // Highlight shield
+                    g.lineStyle(2.5, cfg.secondary, 0.95);
+                    g.strokePoints([
+                        { x: 40, y: 26 },
+                        { x: 54, y: 40 },
+                        { x: 40, y: 54 },
+                        { x: 26, y: 40 }
+                    ], true);
+                } 
+                else if (cfg.shape === 'crown') {
+                    // Outer base block
+                    g.fillStyle(cfg.darkFill, 1);
+                    g.fillRoundedRect(16, 16, 48, 48, 10);
+                    
+                    // Golden crown vectors
+                    g.fillStyle(cfg.fill, 1);
+                    g.fillPoints([
+                        { x: 20, y: 54 },
+                        { x: 20, y: 28 },
+                        { x: 30, y: 40 },
+                        { x: 40, y: 20 },
+                        { x: 50, y: 40 },
+                        { x: 60, y: 28 },
+                        { x: 60, y: 54 }
+                    ], true);
+                    
+                    // Shiny pearls & highlights
+                    g.fillStyle(0xffffff, 1);
+                    g.fillCircle(40, 20, 4);
+                    g.fillCircle(20, 28, 3);
+                    g.fillCircle(60, 28, 3);
+                    
+                    g.lineStyle(2.5, cfg.secondary, 0.95);
+                    g.strokeCircle(40, 40, 23);
+                }
+                else if (cfg.shape === 'star') {
+                    const outerRadius = 24;
+                    const innerRadius = 11;
+                    const cx = 40;
+                    const cy = 40;
+                    
+                    // Outer dark star
+                    g.fillStyle(cfg.darkFill, 1);
+                    const pointsOuter = [];
+                    for (let i = 0; i < 8; i++) {
+                        let angle = (i * Math.PI) / 4;
+                        pointsOuter.push({ x: cx + outerRadius * Math.cos(angle), y: cy + outerRadius * Math.sin(angle) });
+                        angle += Math.PI / 8;
+                        pointsOuter.push({ x: cx + innerRadius * Math.cos(angle), y: cy + innerRadius * Math.sin(angle) });
+                    }
+                    g.fillPoints(pointsOuter, true);
+                    
+                    // Inner bright star
+                    g.fillStyle(cfg.fill, 1);
+                    const pointsInner = [];
+                    const outerRad2 = 18;
+                    const innerRad2 = 7;
+                    for (let i = 0; i < 8; i++) {
+                        let angle = (i * Math.PI) / 4;
+                        pointsInner.push({ x: cx + outerRad2 * Math.cos(angle), y: cy + outerRad2 * Math.sin(angle) });
+                        angle += Math.PI / 8;
+                        pointsInner.push({ x: cx + innerRad2 * Math.cos(angle), y: cy + innerRad2 * Math.sin(angle) });
+                    }
+                    g.fillPoints(pointsInner, true);
+                    
+                    g.lineStyle(1.5, cfg.secondary, 1);
+                    g.strokeCircle(40, 40, 5);
+                }
+                
+                g.generateTexture(cfg.name + '_texture', 80, 80);
+                g.destroy();
+            });
+
+            // Generate sparkle texture for winning particle explosions
+            const spark = scene.make.graphics({ x: 0, y: 0, add: false });
+            spark.fillStyle(0xffffff, 1);
+            spark.fillCircle(8, 8, 6);
+            spark.generateTexture('sparkle', 16, 16);
+            spark.destroy();
+        }
+
+        // Draw static golden card blocks in Phaser
+        function drawBoardBackground(scene) {
+            const bgGraphics = scene.add.graphics();
+            
+            // Translucent master bounding card block background - match theme rgba(20,20,40,0.8)
+            bgGraphics.fillStyle(0x141428, 0.82);
+            bgGraphics.fillRoundedRect(4, 4, 492, 592, 16);
+            
+            // Draw slots backing elements for cards to sit - match stat-box background
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    bgGraphics.fillStyle(0x070613, 0.85); // backing grid boxes matching slot backdrop
+                    bgGraphics.fillRoundedRect(c * 100 + 8, r * 100 + 8, 84, 84, 12);
+                    
+                    // Bronze/gold border matches #5d4e22
+                    bgGraphics.lineStyle(1.5, 0x5d4e22, 0.35);
+                    bgGraphics.strokeRoundedRect(c * 100 + 8, r * 100 + 8, 84, 84, 12);
+                }
+            }
+            
+            // Strong grid-area border matches #5d4e22
+            bgGraphics.lineStyle(4, 0x5d4e22, 1);
+            bgGraphics.strokeRoundedRect(4, 4, 492, 592, 16);
+        }
+
+        function getRandomSymbolColor() {
+            const colors = ['red', 'purple', 'yellow', 'green', 'blue'];
+            // 4.5% chance of rolling a scatter
+            if (Math.random() < 0.045) {
+                return 'scatter';
+            }
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Drop starting tokens on initial startup screen without checking conditions
+        function populateInitialBoard(scene) {
+            let delay = 0;
+            
+            for (let r = ROWS - 1; r >= 0; r--) {
+                for (let c = 0; c < COLS; c++) {
+                    const color = getRandomSymbolColor();
+                    const cx = c * 100 + 50;
+                    const cy = r * 100 + 50;
+                    
+                    const sprite = scene.add.image(cx, cy, color + '_texture');
+                    sprite.setScale(0.8);
+                    sprite.alpha = 0;
+                    
+                    grid[c][r] = { sprite: sprite, color: color };
+                    
+                    scene.tweens.add({
+                        targets: sprite,
+                        alpha: 1,
+                        duration: 350,
+                        delay: delay
+                    });
+                    delay += 12;
+                }
+            }
+        }
+
+        // Wipe grid to prepare for next action round
+        function clearGridAndAnimate(scene, onComplete) {
+            const speedMultiplier = fastPlay ? 0.35 : 1.0;
+            let delay = 0;
+            
+            let animatedCount = 0;
+            let totalTarget = 0;
+            
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    if (grid[c][r]) totalTarget++;
+                }
+            }
+            
+            if (totalTarget === 0) {
+                onComplete();
+                return;
+            }
+            
+            for (let r = ROWS - 1; r >= 0; r--) {
+                for (let c = 0; c < COLS; c++) {
+                    const sym = grid[c][r];
+                    if (sym) {
+                        scene.tweens.add({
+                            targets: sym.sprite,
+                            y: 720, // push down off of visual bounds
+                            alpha: 0,
+                            duration: 180 * speedMultiplier,
+                            delay: delay,
+                            onComplete: () => {
+                                sym.sprite.destroy();
+                                animatedCount++;
+                                if (animatedCount === totalTarget) {
+                                    onComplete();
+                                }
+                            }
+                        });
+                    }
+                }
+                delay += 20 * speedMultiplier;
+            }
+            
+            // Empty structure
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    grid[c][r] = null;
+                }
+            }
+        }
+
+        // Spawn 30 elements down grid dynamically
+        function spawnNewGrid(scene) {
+            const speedMultiplier = fastPlay ? 0.35 : 1.0;
+            animateProgressBar(scene, 755 * speedMultiplier);
+            
+            SlotAudio.playSpin();
+            let delay = 0;
+            
+            let animatedCount = 0;
+            const totalTarget = COLS * ROWS; // 30
+            
+            for (let r = ROWS - 1; r >= 0; r--) {
+                for (let c = 0; c < COLS; c++) {
+                    const color = getRandomSymbolColor();
+                    const startX = c * 100 + 50;
+                    // Stagger initial height slots
+                    const startY = -150 - (r * 40);
+                    const targetY = r * 100 + 50;
+                    
+                    const sprite = scene.add.image(startX, startY, color + '_texture');
+                    sprite.setScale(0.8);
+                    sprite.alpha = 0;
+                    
+                    grid[c][r] = { sprite: sprite, color: color };
+                    
+                    scene.tweens.add({
+                        targets: sprite,
+                        y: targetY,
+                        alpha: 1,
+                        duration: 420 * speedMultiplier,
+                        delay: delay,
+                        ease: 'Back.easeOut',
+                        easeParams: [0.6],
+                        onComplete: () => {
+                            animatedCount++;
+                            if (animatedCount === totalTarget) {
+                                // Once all cells settled, evaluate grid match configurations recursively
+                                scene.time.delayedCall(160 * speedMultiplier, () => {
+                                    checkAndProcessCascade(scene);
+                                });
+                            }
+                        }
+                    });
+                }
+                delay += 35 * speedMultiplier;
+            }
+        }
+
+        // Scan grid state and group elements
+        function checkScatterWins() {
+            // Group sprites coordinates by color keys
+            const counts = { red: [], purple: [], yellow: [], green: [], blue: [], scatter: [] };
+            
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    const cell = grid[c][r];
+                    if (cell) {
+                        counts[cell.color].push({ col: c, row: r, sprite: cell.sprite });
+                    }
+                }
+            }
+            
+            const winningGroups = [];
+            for (const color in counts) {
+                if (color === 'scatter') {
+                    if (counts[color].length >= 4) {
+                        winningGroups.push({
+                            color: color,
+                            symbols: counts[color]
+                        });
+                    }
+                } else {
+                    if (counts[color].length >= 8) {
+                        winningGroups.push({
+                            color: color,
+                            symbols: counts[color]
+                        });
+                    }
+                }
+            }
+            return winningGroups;
+        }
+
+        // Grab core payouts
+        function getPayout(color, count) {
+            if (color === 'scatter') {
+                const multiplierRatio = bet / 2000;
+                let basePay = 3.00; // 3x bet on 4 scatters
+                if (count >= 6) basePay = 100.00; // 100x bet on 6 scatters
+                else if (count >= 5) basePay = 15.00; // 15x bet on 5 scatters
+                return Math.round(basePay * 1000 * multiplierRatio);
+            }
+
+            const basePayouts = {
+                blue:   { min: 0.50, mid: 1.00, max: 2.00 },
+                green:  { min: 0.80, mid: 1.50, max: 4.00 },
+                yellow: { min: 1.00, mid: 2.00, max: 6.00 },
+                purple: { min: 1.60, mid: 3.00, max: 10.00 },
+                red:    { min: 2.00, mid: 5.00, max: 20.00 }
+            };
+            
+            const scale = basePayouts[color];
+            const multiplierRatio = bet / 2000; // ratio matching bet scale
+            
+            let basePay = scale.min;
+            if (count >= 12) basePay = scale.max;
+            else if (count >= 10) basePay = scale.mid;
+            
+            return Math.round(basePay * 1000 * multiplierRatio);
+        }
+
+        const gemColors = {
+            red:    0xff4d4d,
+            purple: 0xa34dff,
+            yellow: 0xfff24d,
+            green:  0x4dff88,
+            blue:   0x4da3ff,
+            scatter:0xffcc00
+        };
+
+        function spawnParticleExplosion(scene, x, y, colorHex) {
+            const particleCount = 18;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = scene.add.image(x, y, 'sparkle');
+                const size = Phaser.Math.Between(5, 12);
+                particle.setScale(size / 16);
+                particle.setTint(colorHex);
+                particle.setBlendMode(Phaser.BlendModes.ADD);
+
+                const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+                const speed = Phaser.Math.FloatBetween(120, 260);
+
+                const targetX = x + Math.cos(angle) * speed;
+                const targetY = y + Math.sin(angle) * speed + Phaser.Math.FloatBetween(25, 75);
+
+                scene.tweens.add({
+                    targets: particle,
+                    x: targetX,
+                    y: targetY,
+                    alpha: 0,
+                    scaleX: 0,
+                    scaleY: 0,
+                    angle: Phaser.Math.Between(-360, 360),
+                    duration: Phaser.Math.Between(600, 950),
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => {
+                        particle.destroy();
+                    }
+                });
+            }
+        }
+ 
+        // Core recursive tumbling evaluation loop
+        function checkAndProcessCascade(scene) {
+            const wins = checkScatterWins();
+            
+            // If no scatter payouts trigger, terminate cascade tree
+            if (wins.length === 0) {
+                endSpinCycle();
+                return;
+            }
+            
+            // Play bright scatter combinations win chime
+            SlotAudio.playWin();
+            
+            const speedMultiplier = fastPlay ? 0.35 : 1.0;
+            let stepPayout = 0.00;
+            const victims = [];
+            
+            // Display results
+            let triggeredMultiplier = false;
+            let rolledMult = 0;
+            let scatterCount = 0;
+ 
+            wins.forEach(match => {
+                const stepWin = getPayout(match.color, match.symbols.length);
+                stepPayout += stepWin;
+                
+                if (match.color === 'scatter') {
+                    scatterCount = match.symbols.length;
+                    addLog(`🌟 SYMBOL SCATTER MAHKOTA KING! <b>${match.symbols.length}x SCATTER</b> berkontribusi <b>+Rp ${stepWin.toLocaleString('id-ID')}</b>`, "text-amber-300 font-extrabold animate-bounce");
+                } else {
+                    addLog(`🏆 COCOK! <b>${match.symbols.length}x ${match.color.toUpperCase()}</b> berkontribusi <b>+Rp ${stepWin.toLocaleString('id-ID')}</b>`, "text-yellow-400 font-bold");
+                }
+                
+                match.symbols.forEach(elem => {
+                    victims.push(elem.sprite);
+                    // Clear cell mapping key
+                    grid[elem.col][elem.row] = null;
+                });
+            });
+
+            if (scatterCount >= 4) {
+                scatterTriggeredThisRound = true;
+                scatterCountThisRound = scatterCount;
+            }
+            
+            // Gates of Olympus inspired multiplier roll: 40% chance of rolling a multiplier upon any cascading combo!
+            if (Math.random() < 0.40) {
+                const multOptions = [2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 50, 100];
+                rolledMult = multOptions[Math.floor(Math.random() * multOptions.length)];
+                activeMultipliers.push(rolledMult);
+                triggeredMultiplier = true;
+                
+                // Play divine multiplier upgrade chime
+                SlotAudio.playMultiplier();
+                
+                addLog(`⚡ BERKAH DEWA! Mengaktifkan pengali <b>X${rolledMult}</b>!`, "text-amber-300 font-black tracking-widest uppercase animate-pulse");
+            }
+
+            currentTumbleWin += stepPayout;
+            updateWinUI();
+            
+            if (triggeredMultiplier) {
+                updateMultipliersUI();
+            }
+
+            // Shake visual screen matching payout magnitudes
+            if (stepPayout >= bet * 5) {
+                scene.cameras.main.shake(180, 0.012); // Great lightning slam
+            } else {
+                scene.cameras.main.shake(90, 0.005); // Minor rumble
+            }
+            
+            // Play glowing vibration scale, then melt away winning symbols
+            scene.tweens.add({
+                targets: victims,
+                scaleX: 1.25,
+                scaleY: 1.25,
+                angle: 12,
+                duration: 160 * speedMultiplier,
+                yoyo: true,
+                repeat: 2,
+                onComplete: () => {
+                    // Trigger custom particle explosive shimmers
+                    wins.forEach(match => {
+                        const colHex = gemColors[match.color] || 0xffffff;
+                        match.symbols.forEach(sym => {
+                            if (sym && sym.sprite) {
+                                spawnParticleExplosion(scene, sym.sprite.x, sym.sprite.y, colHex);
+                            }
+                        });
+                    });
+
+                    // Drop size melt out
+                    scene.tweens.add({
+                        targets: victims,
+                        scaleX: 0.0,
+                        scaleY: 0.0,
+                        alpha: 0,
+                        duration: 220 * speedMultiplier,
+                        onComplete: () => {
+                            // Erase physics objects completely
+                            victims.forEach(s => s.destroy());
+                            
+                            // Collapse survivors down and spawn replacements
+                            cascadeSymbols(scene);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Collapse survivors downwards and drop new randomized cards
+        function cascadeSymbols(scene) {
+            SlotAudio.playSpin();
+            const speedMultiplier = fastPlay ? 0.35 : 1.0;
+            let maxDuration = 0;
+            
+            // Evaluate columns independently
+            for (let c = 0; c < COLS; c++) {
+                // Collect existing survivors from bottom to top
+                const survivors = [];
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    if (grid[c][r] !== null) {
+                        survivors.push(grid[c][r]);
+                        grid[c][r] = null; // unset
+                    }
+                }
+                
+                // Seat survivors starting from bottom cells
+                for (let i = 0; i < survivors.length; i++) {
+                    const sym = survivors[i];
+                    const targetRow = ROWS - 1 - i;
+                    grid[c][targetRow] = sym; // set grid coordinate
+                    
+                    const targetY = targetRow * 100 + 50;
+                    if (sym.sprite.y !== targetY) {
+                        const dist = Math.abs(sym.sprite.y - targetY);
+                        // speed math matching falling distances
+                        const duration = ((dist / 500) * 200 + 100) * speedMultiplier;
+                        maxDuration = Math.max(maxDuration, duration);
+                        
+                        scene.tweens.add({
+                            targets: sym.sprite,
+                            y: targetY,
+                            duration: duration,
+                            ease: 'Bounce.easeOut'
+                        });
+                    }
+                }
+                
+                // Spawn new cards into newly freed higher slots
+                const deadSlots = ROWS - survivors.length;
+                for (let i = 0; i < deadSlots; i++) {
+                    const targetRow = deadSlots - 1 - i;
+                    const color = getRandomSymbolColor();
+                    
+                    const startX = c * 100 + 50;
+                    // Start in higher staggered hidden spaces
+                    const startY = -(i + 1) * 100;
+                    const targetY = targetRow * 100 + 50;
+                    
+                    const sprite = scene.add.image(startX, startY, color + '_texture');
+                    sprite.setScale(0.8);
+                    sprite.alpha = 0;
+                    
+                    grid[c][targetRow] = { sprite: sprite, color: color };
+                    
+                    const dist = Math.abs(startY - targetY);
+                    const duration = ((dist / 600) * 320 + 160) * speedMultiplier;
+                    maxDuration = Math.max(maxDuration, duration);
+                    
+                    scene.tweens.add({
+                        targets: sprite,
+                        y: targetY,
+                        alpha: 1,
+                        duration: duration,
+                        ease: 'Bounce.easeOut',
+                        delay: 100 * speedMultiplier // slight release lag
+                    });
+                }
+            }
+            
+            // Call recurring cascade scanner once droplets seat
+            animateProgressBar(scene, maxDuration + 180 * speedMultiplier);
+            scene.time.delayedCall(maxDuration + 180 * speedMultiplier, () => {
+                checkAndProcessCascade(scene);
+            });
+        }
+
+        // Finish sequence and payout
+        function endSpinCycle() {
+            let finalWin = currentTumbleWin;
+            let multiplierSum = activeMultipliers.reduce((a, b) => a + b, 0);
+            
+            if (currentTumbleWin > 0) {
+                if (isFreeSpinsActive) {
+                    if (multiplierSum > 0) {
+                        globalFreeSpinsMultiplier += multiplierSum;
+                        addLog(`⚡ MULTIPLIER BARU TERKUMPUL! Pengali Global kini meningkat menjadi: <b>X${globalFreeSpinsMultiplier}</b>`, "text-amber-300 font-extrabold animate-pulse");
+                    }
+                    if (globalFreeSpinsMultiplier > 0) {
+                        finalWin = currentTumbleWin * globalFreeSpinsMultiplier;
+                        addLog(`🔥 PENGALI GLOBAL AKTIF! Kemenangan dikalikan multiplier global sebesar <b>X${globalFreeSpinsMultiplier}</b> (Tumble: Rp ${currentTumbleWin.toLocaleString('id-ID')} x ${globalFreeSpinsMultiplier})`, "text-amber-400 font-black");
+                    }
+                    freeSpinsTotalWinAccumulator += finalWin;
+                } else {
+                    if (multiplierSum > 0) {
+                        finalWin = currentTumbleWin * multiplierSum;
+                        addLog(`🔥 MULTIPLIER AKTIF! Total kemenangan akhir dikalikan pengali kombinasi sebesar <b>X${multiplierSum}</b> (Tumble: Rp ${currentTumbleWin.toLocaleString('id-ID')} x ${multiplierSum})`, "text-amber-400 font-black");
+                    }
+                }
+
+                credit += finalWin;
+                win = finalWin;
+                updateUI();
+                updateFreeSpinsHUD();
+                addLog(`✨ TUMBLE SELESAI! Total Kemenangan: <b>Rp ${finalWin.toLocaleString('id-ID')}</b> ditambahkan ke saldo.`, "text-emerald-400 font-bold");
+                
+                tickerBullet.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
+                tickerText.innerText = `WIN ROUND! +Rp ${finalWin.toLocaleString('id-ID')}`;
+            } else {
+                win = 0.00;
+                updateUI();
+                updateFreeSpinsHUD();
+                addLog(" Ronde Selesai. Tidak ada pola scatter cocok.");
+                
+                tickerBullet.className = "w-2.5 h-2.5 rounded-full bg-gray-500";
+                tickerText.innerText = "COOLDOWNS ENDED. TRIES AGAIN.";
+            }
+            
+            // Release lockouts for now
+            isSpinning = false;
+            setSpinButtonState(true);
+            hideProgressBar();
+            
+            // Handle Free Spins Triggers & Transitions
+            if (scatterTriggeredThisRound) {
+                isSpinning = true;
+                setSpinButtonState(false);
+                
+                if (!isFreeSpinsActive) {
+                    isFreeSpinsActive = true;
+                    freeSpinsRemaining = 10;
+                    freeSpinsTotalWinAccumulator = 0;
+                    globalFreeSpinsMultiplier = 0;
+                    
+                    addLog(`🌟 GERBANG SURGA TERBUKA! Landing ${scatterCountThisRound}x Scatter memicu 10 Putaran Gratis!`, "text-yellow-400 font-black tracking-wider uppercase animate-bounce");
+                    updateFreeSpinsHUD();
+                    
+                    setTimeout(() => {
+                        showFreeSpinsTrigger(10, false);
+                        setTimeout(() => {
+                            isSpinning = false;
+                            triggerSpin();
+                        }, 3300);
+                    }, 800);
+                    return;
+                } else {
+                    freeSpinsRemaining += 5;
+                    addLog(`🌟 RE-TRIGGER! Landing ${scatterCountThisRound}x Scatter menambahkan 5 Putaran Gratis!`, "text-yellow-400 font-black tracking-wider uppercase animate-bounce");
+                    updateFreeSpinsHUD();
+                    
+                    setTimeout(() => {
+                        showFreeSpinsTrigger(5, true);
+                        setTimeout(() => {
+                            isSpinning = false;
+                            triggerSpin();
+                        }, 3300);
+                    }, 800);
+                    return;
+                }
+            }
+            
+            if (isFreeSpinsActive) {
+                if (freeSpinsRemaining === 0) {
+                    isSpinning = true;
+                    setSpinButtonState(false);
+                    addLog(`🏆 PERMAINAN GRATIS SELESAI! Mengumpulkan total hasil kemenangan sebesar Rp ${freeSpinsTotalWinAccumulator.toLocaleString('id-ID')}`, "text-emerald-300 font-black uppercase");
+                    
+                    setTimeout(() => {
+                        showFreeSpinsSummary();
+                    }, 1400);
+                    return;
+                } else {
+                    isSpinning = true;
+                    setSpinButtonState(false);
+                    // Automatically run the next free spin round
+                    setTimeout(() => {
+                        isSpinning = false;
+                        triggerSpin();
+                    }, 1400);
+                    return;
+                }
+            }
+            
+            // Handle Auto Spin loops for base game
+            if (autoSpin) {
+                let scene = game.scene.scenes[0];
+                autoSpinTimer = scene.time.delayedCall(1200, () => {
+                    if (autoSpin && !isSpinning) {
+                        triggerSpin();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
