@@ -35,8 +35,8 @@
     </script>
     <style>
         body {
-            background-color: #0b0a1d;
-            background: radial-gradient(circle at center, #1a1a40 0%, #0b0a1d 100%);
+            background-color: #070913;
+            overflow-x: hidden;
             overscroll-behavior: none;
         }
         /* Custom scrollbar styling for the activity log container */
@@ -138,17 +138,39 @@
 </head>
 <body class="font-sans text-gray-200 min-h-screen flex flex-col justify-between p-4 md:p-6 overflow-x-hidden selection:bg-yellow-500 selection:text-black">
 
+    <!-- Beautiful Layered Sky Background for Dynamic Sky-Shift -->
+    <div id="sky-background-container" class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <!-- Layer 0: Cosmic Night -->
+        <div id="sky-layer-night" class="absolute inset-0 transition-opacity duration-1000 ease-in-out bg-[radial-gradient(circle_at_center,#1a1a40_0%,#070913_100%)] opacity-100"></div>
+        
+        <!-- Layer 1: Twilight Olympus -->
+        <div id="sky-layer-twilight" class="absolute inset-0 transition-opacity duration-1000 ease-in-out bg-[radial-gradient(circle_at_center,#4a1a5c_0%,#090314_100%)] opacity-0"></div>
+        
+        <!-- Layer 2: Golden Sunset -->
+        <div id="sky-layer-sunset" class="absolute inset-0 transition-opacity duration-1000 ease-in-out bg-[radial-gradient(circle_at_center,#7a2808_0%,#140201_100%)] opacity-0"></div>
+        
+        <!-- Layer 3: Divine Olympus Day -->
+        <div id="sky-layer-divine" class="absolute inset-0 transition-opacity duration-1000 ease-in-out bg-[radial-gradient(circle_at_center,#c58104_0%,#240101_100%)] opacity-0"></div>
+        
+        <!-- Celestial Starry Veil overlay for cosmic magic -->
+        <div class="absolute inset-0 bg-repeat bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-15 mix-blend-screen pointer-events-none"></div>
+    </div>
+
     <!-- Top Navigation Header -->
     <header class="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pb-4 border-b border-yellow-500/20 mb-4 gap-4">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg border border-yellow-400/50">
                 <span class="font-display font-black text-[#070913] text-xl">⚡</span>
             </div>
-            <div>
-                <h1 class="font-display font-black text-2xl tracking-widest text-[#D4AF37] text-gold-shadow uppercase">
+            <div class="flex flex-col">
+                <h1 class="font-display font-black text-2xl tracking-widest text-[#D4AF37] text-gold-shadow uppercase leading-none mb-1">
                     BANGKIBO<span class="text-white"> SLOTER</span>
                 </h1>
-                <p class="text-[10px] text-gray-400 tracking-wider uppercase font-mono">SELALU ADA KESEMPATAN DALAM KEGABUTAN</p>
+                <p class="text-left -mt-0.5">
+                    <span class="bg-[#D4AF37] text-slate-950 px-1.5 py-0.5 rounded font-black text-[9px] tracking-wider font-mono shadow-[0_0_8px_rgba(212,175,55,0.4)] uppercase">
+                        SELALU ADA KESENANGAN DALAM KEGABUTAN
+                    </span>
+                </p>
             </div>
         </div>
         
@@ -173,29 +195,9 @@
 
     <!-- Main Workspace Area -->
     <main class="w-full max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch my-auto">
-        
-        <!-- Left Panel: Payout Multipliers List -->
-        <section class="xl:col-span-3 flex flex-col justify-between gap-4 geometry-stat-box rounded-2xl p-4 shadow-2xl">
-            <div>
-                <div class="flex items-center justify-between pb-3 border-b border-gray-800 mb-3">
-                    <h2 class="font-display text-base font-bold text-yellow-500">PAYTABLE (DAFTAR SKOR)</h2>
-                    <span class="text-[10px] text-gray-400 font-mono">Scales with Bet</span>
-                </div>
-                <p class="text-xs text-gray-400 mb-4 leading-relaxed">
-                    Kemenangan terjadi jika ada minimal <b>8 simbol sejenis</b> muncul di mana saja pada layar. Semakin banyak jumlahnya, semakin besar bayarannya!
-                </p>
-                <div id="payout-table-list" class="space-y-1">
-                    <!-- Dynamic payout elements will render here -->
-                </div>
-            </div>
-            
-            <div class="bg-slate-900/40 border border-gray-800 rounded-lg p-3 text-xs leading-relaxed text-gray-400">
-                <span class="text-yellow-500 font-bold">INFO SYARAT:</span> Bet dihitung di setiap Spin (Rp 2.000 Default). Jumlah total kemenangan tumble akan langsung ditransaksikan ke saldo Credit setelah seluruh cascade berantai selesai.
-            </div>
-        </section>
 
         <!-- Center Panel: The Game Canvas and Status Bar -->
-        <section class="lg:col-span-12 xl:col-span-5 flex flex-col items-center justify-center gap-4 w-full">
+        <section class="lg:col-span-12 xl:col-span-7 flex flex-col items-center justify-center gap-4 w-full">
             <!-- Game Canvas Mount point -->
             <div class="relative group w-full max-w-[500px] mx-auto">
                 <!-- Gold ambient glow back ring -->
@@ -203,6 +205,12 @@
                 
                 <!-- Main mount wrapper -->
                 <div id="phaser-game-frame" class="relative rounded-2xl overflow-hidden geometry-container p-1 bg-[#141428] w-full">
+                    <!-- Sky Shift Status Badge -->
+                    <div id="sky-shift-badge" class="absolute top-4 left-4 z-10 pointer-events-none transition-all duration-300 px-3 py-1 text-[10px] font-bold tracking-wider text-blue-400 bg-slate-950/80 border border-blue-500/30 rounded-full flex items-center gap-1.5 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        <span id="sky-shift-text" class="uppercase font-mono">Cosmic Night</span>
+                    </div>
+
                     <!-- Multipliers Overlay Container -->
                     <div id="multipliers-overlay" class="absolute top-4 right-4 z-10 flex flex-col gap-2 pointer-events-none transition-all duration-300">
                         <!-- Dynamic linear-gradient multiplier widgets -->
@@ -290,6 +298,47 @@
                             ★ SENSASI KEMENANGAN LUAR BIASA ★
                         </div>
                     </div>
+
+                    <!-- Multiplier Applied Pop Overlay -->
+                    <div id="multiplier-pop-overlay" class="absolute inset-0 z-25 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+                        <div class="z-10">
+                            <span class="text-[10px] font-black tracking-widest text-amber-400 uppercase">PENGALI ZEUS AKTIF</span>
+                            <h2 class="text-2xl font-black text-white hover:text-amber-300 transition-colors uppercase tracking-wider my-1">
+                                PERKALIAN KEMENANGAN
+                            </h2>
+                        </div>
+                        
+                        <div class="z-10 flex items-center justify-center gap-3 md:gap-5 font-mono">
+                            <!-- Base Win Column -->
+                            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center min-w-[110px] shadow-lg">
+                                <span class="text-[8px] text-gray-400 block mb-1">KEMENANGAN AWAL</span>
+                                <span id="m-pop-base" class="text-sm font-bold text-gray-100">Rp 0</span>
+                            </div>
+                            
+                            <!-- Multiplication Symbol -->
+                            <div class="text-3xl font-extrabold text-amber-500 animate-pulse">×</div>
+                            
+                            <!-- Multiplier Column -->
+                            <div id="m-pop-multiplier-box" class="bg-gradient-to-br from-amber-600 to-yellow-500 border border-yellow-400 rounded-xl p-3 text-center min-w-[75px] shadow-[0_0_15px_rgba(245,158,11,0.5)] transform scale-110">
+                                <span class="text-[8px] text-slate-950 font-black block mb-1">PENGALI</span>
+                                <span id="m-pop-multiplier" class="text-lg font-black text-slate-950">X0</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Equals Symbol -->
+                        <div class="text-xl font-bold text-gray-400 font-mono scale-y-75 font-serif">=</div>
+                        
+                        <!-- Final Win Result Box -->
+                        <div id="m-pop-result-box" class="z-10 px-6 py-4 rounded-2xl bg-slate-950 border border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.4)] min-w-[240px] transform scale-95 transition-all duration-500">
+                            <span class="text-[9px] uppercase font-bold tracking-widest text-[#10b981] mb-1 block">TOTAL KEMENANGAN AKHIR</span>
+                            <span id="m-pop-final" class="text-2xl font-black text-emerald-400 font-mono">Rp 0</span>
+                        </div>
+
+                        <!-- Sparkles reference -->
+                        <div class="text-[9px] font-mono text-yellow-500 animate-pulse uppercase tracking-widest">
+                            ⚡ KILAT ZEUS MENYAMBAR ⚡
+                        </div>
+                    </div>
                     
                     <!-- Canvas holder -->
                     <div id="phaser-grid-mount" class="w-full aspect-[5/6] bg-transparent mx-auto relative overflow-hidden flex items-center justify-center"></div>
@@ -314,12 +363,57 @@
         </section>
 
         <!-- Right Panel: Balance Display, Controls, & Logging History -->
-        <section class="xl:col-span-4 flex flex-col justify-between gap-4 geometry-stat-box rounded-2xl p-4 shadow-2xl">
+        <section class="xl:col-span-5 flex flex-col justify-between gap-4 geometry-stat-box rounded-2xl p-4 shadow-2xl">
             <!-- User Status HUD -->
             <div class="space-y-3">
                 <div class="flex justify-between items-center pb-2 border-b border-gray-800">
-                    <h2 class="font-display text-base font-bold text-yellow-500">USER HUD CONTROLS</h2>
-                    <span class="text-[10px] text-gray-500 font-mono">Live Session</span>
+                    <span class="text-xs font-bold text-yellow-500 font-mono tracking-wider">LIVE SESSION</span>
+                </div>
+
+                <!-- Live Zeus RTP Algorithm Dashboard -->
+                <div class="hidden bg-slate-950/80 border border-yellow-500/30 rounded-xl p-3 shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 px-2 py-0.5 rounded-bl bg-yellow-600/20 border-l border-b border-yellow-500/20">
+                        <span class="text-[8px] font-bold text-yellow-400 font-mono">ZEUS ENGINE v2.2</span>
+                    </div>
+                    <h3 class="text-xs font-bold text-[#D4AF37] mb-2 uppercase tracking-wide flex items-center gap-1.5 font-sans">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                        </span>
+                        RTP Algorithm Dashboard
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-2 text-center text-[10px] font-mono mb-2">
+                        <div class="bg-black/30 border border-slate-800 rounded p-1.5">
+                            <span class="text-gray-400 block mb-0.5 uppercase">ESTIMASI KONDISI</span>
+                            <span id="rtp-status-display" class="font-bold text-rose-400">FASE 1: KALAH PERLAHAN</span>
+                        </div>
+                        <div class="bg-black/30 border border-slate-800 rounded p-1.5">
+                            <span class="text-gray-400 block mb-0.5 uppercase">SAAT INI</span>
+                            <span id="rtp-timer-display" class="font-extrabold text-[#D4AF37] text-xs">180s left</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress meter for the 9-minute master timeline -->
+                    <div class="mb-3">
+                        <div class="flex justify-between items-center text-[8px] text-gray-500 font-bold mb-1 uppercase">
+                            <span>Siklus Algoritma (9 Menit Total)</span>
+                            <span id="timeline-time-display" class="font-mono">00:00 / 09:00</span>
+                        </div>
+                        <div class="w-full bg-slate-900 border border-slate-800 h-2 rounded-full overflow-hidden p-0.5">
+                            <div id="timeline-progress-bar" class="h-full bg-gradient-to-r from-rose-500 via-emerald-400 to-rose-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Override Testing Buttons -->
+                    <div>
+                        <span class="text-[8px] font-bold text-gray-500 block uppercase mb-1 font-mono">PENGUJI MANUAL (TEST OVERRIDE):</span>
+                        <div class="grid grid-cols-3 gap-1">
+                            <button onclick="overrideRtpPhase(1)" class="py-1 px-1.5 text-[9px] font-bold bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 hover:border-rose-400 text-rose-400 rounded cursor-pointer transition">Fase 1 (Kalah)</button>
+                            <button onclick="overrideRtpPhase(2)" class="py-1 px-1.5 text-[9px] font-bold bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 hover:border-emerald-400 text-emerald-400 rounded cursor-pointer transition">Fase 2 (Naik)</button>
+                            <button onclick="overrideRtpPhase(3)" class="py-1 px-1.5 text-[9px] font-bold bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 hover:border-red-400 text-red-500 rounded cursor-pointer transition">Fase 3 (Habis)</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
@@ -330,7 +424,7 @@
                             <span class="text-[10px] font-bold text-[#d4af37] tracking-wider">CREDIT BAL</span>
                             <button onclick="refillBalance()" class="text-[9px] text-yellow-500 bg-yellow-950/40 hover:bg-yellow-900/80 border border-[#7a6100] px-1.5 py-0.5 rounded cursor-pointer" title="Refill saldo">Refill</button>
                         </div>
-                        <p id="credit-display" class="text-lg font-black text-emerald-400 text-neon-green font-mono mt-1">Rp 10.000.000</p>
+                        <p id="credit-display" class="text-lg font-black text-emerald-400 text-neon-green font-mono mt-1">Rp 5.000.000</p>
                     </div>
                     
                     <!-- Ronde Win -->
@@ -392,6 +486,38 @@
                         </div>
                     </label>
                 </div>
+
+                <!-- Auto Spin Safety Limits Panel -->
+                <div id="auto-spin-settings" class="hidden bg-slate-900/45 border border-purple-500/20 rounded-xl p-3 mb-1 text-left space-y-2.5 transition-all duration-300">
+                    <div class="flex items-center justify-between border-b border-purple-500/10 pb-1.5">
+                        <span class="text-[10px] font-mono tracking-wider font-bold text-purple-400">🔁 AUTO-SPIN SAFETY LIMITS</span>
+                        <span class="text-[8px] text-gray-400 font-mono">Batas Pengaman</span>
+                    </div>
+                    <div class="space-y-2">
+                        <!-- Drop Limit -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-300">Stop jika saldo di bawah:</span>
+                                <span class="text-[8px] text-gray-500">Stop if credit drops below</span>
+                            </div>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-2.5 text-[9px] text-gray-500 font-mono">Rp</span>
+                                <input id="auto-stop-credit" type="number" step="1000" min="0" placeholder="0 (Tanpa Batas)" class="w-28 pl-7 pr-2 py-1 bg-black/60 border border-gray-800 rounded text-right text-xs font-mono font-bold text-yellow-500 focus:border-purple-500 focus:ring-0">
+                            </div>
+                        </div>
+                        <!-- Single Win Limit -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-bold text-gray-300">Stop jika menang sekali >=:</span>
+                                <span class="text-[8px] text-gray-500">Stop if single win exceeds</span>
+                            </div>
+                            <div class="relative flex items-center">
+                                <span class="absolute left-2.5 text-[9px] text-gray-500 font-mono">Rp</span>
+                                <input id="auto-stop-win" type="number" step="1000" min="0" placeholder="0 (Tanpa Batas)" class="w-28 pl-7 pr-2 py-1 bg-black/60 border border-gray-800 rounded text-right text-xs font-mono font-bold text-emerald-400 focus:border-purple-700 focus:ring-0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Ledger Logs of Spin Sequence -->
@@ -406,6 +532,41 @@
                 </div>
             </div>
 
+            <!-- Session Performance Dashboard -->
+            <div class="bg-slate-950/40 border border-gray-800/60 rounded-xl p-3.5 my-2 select-none space-y-2">
+                <div class="flex items-center justify-between pb-2 border-b border-gray-850">
+                    <span class="text-[10px] font-mono tracking-wider font-bold text-gray-400">SESSION PERFORMANCE STATS</span>
+                    <span class="text-[8px] text-yellow-500/80 font-mono uppercase bg-yellow-500/10 px-1.5 py-0.5 rounded border border-yellow-500/20">Real-Time Data</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-black/30 border border-gray-800/65 p-2 rounded-lg">
+                        <span class="text-[9px] font-bold text-gray-400 block tracking-wider uppercase mb-0.5">BIGGEST WIN</span>
+                        <span id="biggest-win-val" class="text-xs font-black text-gray-400 font-mono transition-all duration-300">Rp 0</span>
+                    </div>
+                    <div class="bg-black/30 border border-gray-800/65 p-2 rounded-lg">
+                        <span class="text-[9px] font-bold text-gray-400 block tracking-wider uppercase mb-0.5">PROFIT / LOSS</span>
+                        <span id="profit-loss-val" class="text-xs font-black text-gray-400 font-mono transition-all duration-300">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAYTABLE (DAFTAR SKOR) -->
+            <div class="bg-slate-950/40 border border-gray-800/60 rounded-xl p-3.5 space-y-2 my-2">
+                <div class="flex items-center justify-between pb-2 border-b border-gray-850">
+                    <h2 class="font-display text-xs font-bold text-yellow-500 uppercase tracking-wider">PAYTABLE (DAFTAR SKOR)</h2>
+                    <span class="text-[9px] text-gray-400 font-mono">Scales with Bet</span>
+                </div>
+                <p class="text-[10px] text-gray-400 leading-relaxed">
+                    Kemenangan terjadi jika ada minimal <b class="text-yellow-500">8 simbol sejenis</b> muncul di mana saja pada layar.
+                </p>
+                <div id="payout-table-list" class="space-y-1">
+                    <!-- Dynamic payout elements will render here -->
+                </div>
+                <div class="bg-slate-900/30 border border-gray-800/40 rounded-lg p-2 text-[9px] leading-relaxed text-gray-400 mt-1">
+                    <span class="text-yellow-500 font-bold">INFO SYARAT:</span> Bet dihitung di setiap Spin. Jumlah total kemenangan tumble di-kreditkan setelah seluruh cascade selesai.
+                </div>
+            </div>
+
             <!-- Main Big SPIN Action CTA Button -->
             <button id="spin-btn" onclick="triggerSpin()" class="w-full h-16 rounded-xl geometry-spin-btn text-[#4a3500] font-black text-xl tracking-wider cursor-pointer hover:brightness-110 flex items-center justify-center">
                 <span>⚡ SPIN</span>
@@ -416,14 +577,12 @@
 
     <!-- Bottom Footer Signoff -->
     <footer class="w-full max-w-7xl mx-auto pt-4 border-t border-gray-900 flex justify-between items-center text-[10px] text-gray-500 font-mono mt-4">
-        <div>PROTASI GAME ONLINE • POWERED BY PHASER 3</div>
-        <div class="text-yellow-500/40">GATES OF OLYMPUS INSPIRED</div>
     </footer>
 
     <!-- Dedicated Game Logics Scripting -->
     <script>
         // Core game state
-        let credit = 10000000;
+        let credit = 5000000;
         let bet = 2000;
         let win = 0;
         
@@ -431,6 +590,15 @@
         let currentTumbleWin = 0;
         let autoSpin = false;
         let fastPlay = false;
+
+        // Session performance stats
+        let biggestWin = 0;
+        let sessionStartCredit = 5000000;
+
+        // RTP Algorithm Simulation states
+        let sessionStartTime = Date.now();
+        let currentOverridePhase = null; // null for automatic, 1, 2, 3 for manual overrides
+        let spinsInPhase3 = 0;
         
         let autoSpinTimer = null;
         let spinIdleTimer = null;
@@ -543,6 +711,7 @@
             addLog("Kembali ke permainan utama.", "text-gray-400 font-bold");
             updateFreeSpinsHUD();
             updateUI();
+            updateSkyShift();
             
             setSpinButtonState(true);
             
@@ -686,19 +855,286 @@
             }
         };
 
-        function updateMultipliersUI() {
-            const container = document.getElementById('multipliers-overlay');
-            if (!container) return;
-            if (activeMultipliers.length === 0) {
-                container.innerHTML = '';
-                return;
+        let currentSkyTheme = 'night';
+
+        function getThemeDisplayName(theme) {
+            if (theme === 'night') return 'Cosmic Night';
+            if (theme === 'twilight') return 'Twilight Olympus';
+            if (theme === 'sunset') return 'Mount Golden Sunset';
+            if (theme === 'divine') return 'Divine Olympus';
+            return theme;
+        }
+
+        function updateSkyShift() {
+            let totalMult = activeMultipliers.reduce((a, b) => a + b, 0);
+            if (isFreeSpinsActive) {
+                totalMult += globalFreeSpinsMultiplier;
             }
             
-            container.innerHTML = activeMultipliers.map(mult => `
-                <div class="geometry-multiplier-badge px-3 py-1.5 rounded-full text-xs font-black flex items-center justify-center gap-1 shadow-md animate-bounce uppercase">
-                    <span>⚡ X${mult}</span>
-                </div>
-            `).join('');
+            let targetTheme = 'night';
+            if (totalMult >= 25) {
+                targetTheme = 'divine';
+            } else if (totalMult >= 10) {
+                targetTheme = 'sunset';
+            } else if (totalMult > 0) {
+                targetTheme = 'twilight';
+            }
+            
+            if (currentSkyTheme !== targetTheme) {
+                const previousThemeName = getThemeDisplayName(currentSkyTheme);
+                const nextThemeName = getThemeDisplayName(targetTheme);
+                currentSkyTheme = targetTheme;
+                
+                // Update background layers
+                const layers = {
+                    night: document.getElementById('sky-layer-night'),
+                    twilight: document.getElementById('sky-layer-twilight'),
+                    sunset: document.getElementById('sky-layer-sunset'),
+                    divine: document.getElementById('sky-layer-divine')
+                };
+                
+                Object.keys(layers).forEach(themeKey => {
+                    const layer = layers[themeKey];
+                    if (layer) {
+                        if (themeKey === targetTheme) {
+                            layer.classList.remove('opacity-0');
+                            layer.classList.add('opacity-100');
+                        } else {
+                            layer.classList.remove('opacity-100');
+                            layer.classList.add('opacity-0');
+                        }
+                    }
+                });
+                
+                // Update layout Badge style & text
+                const badge = document.getElementById('sky-shift-badge');
+                const badgeText = document.getElementById('sky-shift-text');
+                if (badge && badgeText) {
+                    badgeText.innerText = nextThemeName;
+                    
+                    // Reset class values
+                    badge.className = "absolute top-4 left-4 z-10 pointer-events-none transition-all duration-300 px-3 py-1 text-[10px] font-bold tracking-wider rounded-full flex items-center gap-1.5 border shadow-md";
+                    
+                    const dot = badge.querySelector('span');
+                    
+                    if (targetTheme === 'night') {
+                        badge.classList.add('text-blue-400', 'bg-slate-950/80', 'border-blue-500/30', 'shadow-[0_0_12px_rgba(59,130,246,0.15)]');
+                        if (dot) {
+                            dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+                        }
+                    } else if (targetTheme === 'twilight') {
+                        badge.classList.add('text-pink-400', 'bg-slate-950/80', 'border-pink-500/30', 'shadow-[0_0_12px_rgba(244,63,94,0.15)]');
+                        if (dot) {
+                            dot.className = "w-2 h-2 rounded-full bg-pink-500";
+                            dot.style.animation = "ping 1s cubic-bezier(0, 0, 0.2, 1) infinite";
+                        }
+                    } else if (targetTheme === 'sunset') {
+                        badge.classList.add('text-amber-400', 'bg-slate-950/80', 'border-amber-500/30', 'shadow-[0_0_12px_rgba(245,158,11,0.25)]');
+                        if (dot) {
+                            dot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+                        }
+                    } else if (targetTheme === 'divine') {
+                        badge.classList.add('text-yellow-300', 'bg-slate-950/85', 'border-yellow-400/50', 'shadow-[0_0_15px_rgba(234,179,8,0.45)]');
+                        if (dot) {
+                            dot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-bounce";
+                        }
+                    }
+                }
+                
+                // Add rich game-log entry
+                let logStyle = "text-blue-400 font-bold";
+                if (targetTheme === 'twilight') logStyle = "text-pink-400 font-extrabold animate-pulse";
+                if (targetTheme === 'sunset') logStyle = "text-amber-500 font-extrabold tracking-wide uppercase";
+                if (targetTheme === 'divine') logStyle = "text-yellow-400 font-black tracking-widest uppercase animate-bounce";
+                
+                addLog(`🌅 CELESTIAL SHIFT: Atmosfer surga bergejolak dari ${previousThemeName} menjadi <b>${nextThemeName}</b>! (Multiplier: X${totalMult})`, logStyle);
+                
+                // Camera shake and flash inside Phaser
+                try {
+                    const scene = window.game?.scene?.scenes[0];
+                    if (scene) {
+                        scene.cameras.main.flash(300, 255, 255, 230, 0.1);
+                        scene.cameras.main.shake(200, 0.005);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function overrideRtpPhase(phaseId) {
+            currentOverridePhase = phaseId;
+            spinsInPhase3 = 0;
+            
+            if (phaseId === 1) {
+                sessionStartTime = Date.now();
+            } else if (phaseId === 2) {
+                sessionStartTime = Date.now() - 180000;
+            } else if (phaseId === 3) {
+                sessionStartTime = Date.now() - 360000;
+            }
+            
+            const pInfo = getActivePhaseInfo();
+            addLog(`⚙️ RTP OVERRIDE: Dewa Slot dipindahkan paksa ke <b>${pInfo.name}</b>!`, "text-cyan-400 font-black tracking-wider uppercase animate-pulse");
+            updateRtpDashboard();
+            
+            let forceTheme = 'night';
+            if (phaseId === 2) forceTheme = 'twilight';
+            if (phaseId === 3) forceTheme = 'divine';
+            forceChangeSkyTheme(forceTheme);
+        }
+
+        function forceChangeSkyTheme(targetTheme) {
+            currentSkyTheme = targetTheme;
+            const layers = {
+                night: document.getElementById('sky-layer-night'),
+                twilight: document.getElementById('sky-layer-twilight'),
+                sunset: document.getElementById('sky-layer-sunset'),
+                divine: document.getElementById('sky-layer-divine')
+            };
+            Object.keys(layers).forEach(themeKey => {
+                const layer = layers[themeKey];
+                if (layer) {
+                    if (themeKey === targetTheme) {
+                        layer.classList.remove('opacity-0');
+                        layer.classList.add('opacity-100');
+                    } else {
+                        layer.classList.remove('opacity-100');
+                        layer.classList.add('opacity-0');
+                    }
+                }
+            });
+            const badge = document.getElementById('sky-shift-badge');
+            const badgeText = document.getElementById('sky-shift-text');
+            if (badge && badgeText) {
+                badgeText.innerText = getThemeDisplayName(targetTheme);
+                badge.className = "absolute top-4 left-4 z-10 pointer-events-none transition-all duration-300 px-3 py-1 text-[10px] font-bold tracking-wider rounded-full flex items-center gap-1.5 border shadow-md";
+                const dot = badge.querySelector('span');
+                if (targetTheme === 'night') {
+                    badge.classList.add('text-blue-400', 'bg-slate-950/80', 'border-blue-500/30', 'shadow-[0_0_12px_rgba(59,130,246,0.15)]');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+                } else if (targetTheme === 'twilight') {
+                    badge.classList.add('text-pink-400', 'bg-slate-950/80', 'border-pink-500/30', 'shadow-[0_0_12px_rgba(244,63,94,0.15)]');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-pink-500 animate-ping";
+                } else if (targetTheme === 'sunset') {
+                    badge.classList.add('text-amber-400', 'bg-slate-950/80', 'border-amber-500/30', 'shadow-[0_0_12px_rgba(245,158,11,0.25)]');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+                } else if (targetTheme === 'divine') {
+                    badge.classList.add('text-yellow-300', 'bg-slate-950/85', 'border-yellow-400/50', 'shadow-[0_0_15px_rgba(234,179,8,0.45)]');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-yellow-400 animate-bounce";
+                }
+            }
+        }
+
+        function getActivePhaseInfo() {
+            const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+            if (elapsedSeconds < 180) {
+                return {
+                    id: 1,
+                    name: "FASE 1: KALAH PERLAHAN",
+                    desc: "Sistem slot menyerap taruhan perlahan-lahan.",
+                    colorClass: "text-rose-400 font-bold",
+                    timeLeft: 180 - elapsedSeconds
+                };
+            } else if (elapsedSeconds < 360) {
+                return {
+                    id: 2,
+                    name: "FASE 2: NAIK PERLAHAN",
+                    desc: "Sistem mengalirkan kemenangan naik secara bertahap.",
+                    colorClass: "text-emerald-400 font-extrabold animate-pulse",
+                    timeLeft: 360 - elapsedSeconds
+                };
+            } else {
+                return {
+                    id: 3,
+                    name: "FASE 3: KALAH TOTAL",
+                    desc: "Kemurkaan Zeus! Saldo dipaksa habis.",
+                    colorClass: "text-red-500 font-black animate-bounce",
+                    timeLeft: Math.max(0, 540 - elapsedSeconds)
+                };
+            }
+        }
+
+        function updateRtpDashboard() {
+            const rtpStatus = document.getElementById('rtp-status-display');
+            const rtpTimer = document.getElementById('rtp-timer-display');
+            const timelineTime = document.getElementById('timeline-time-display');
+            const timelineProgress = document.getElementById('timeline-progress-bar');
+            
+            const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const info = getActivePhaseInfo();
+            
+            if (rtpStatus) {
+                rtpStatus.innerText = info.name;
+                rtpStatus.className = `font-bold uppercase ${info.colorClass}`;
+            }
+            if (rtpTimer) {
+                rtpTimer.innerText = `${info.timeLeft}s left`;
+            }
+            
+            const fmtTime = (sec) => {
+                const m = Math.floor(sec / 60);
+                const s = sec % 60;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            };
+            
+            if (timelineTime) {
+                const displaySec = Math.min(540, elapsedSeconds);
+                timelineTime.innerText = `${fmtTime(displaySec)} / 09:00`;
+            }
+            
+            if (timelineProgress) {
+                const percentage = Math.min(100, (elapsedSeconds / 540) * 100);
+                timelineProgress.style.width = `${percentage}%`;
+                if (info.id === 1) {
+                    timelineProgress.style.background = "linear-gradient(to right, #f43f5e, #fda4af)";
+                } else if (info.id === 2) {
+                    timelineProgress.style.background = "linear-gradient(to right, #10b981, #6ee7b7)";
+                } else {
+                    timelineProgress.style.background = "linear-gradient(to right, #dc2626, #fca5a5)";
+                }
+            }
+
+            if (activeMultipliers.length === 0 && !isFreeSpinsActive) {
+                let targetTheme = 'night';
+                if (info.id === 2) targetTheme = 'twilight';
+                if (info.id === 3) targetTheme = 'divine';
+                if (currentSkyTheme !== targetTheme) {
+                    forceChangeSkyTheme(targetTheme);
+                }
+            }
+
+            if (elapsedSeconds >= 540 && credit > 0 && !isSpinning) {
+                const burned = credit;
+                credit = 0;
+                updateUI();
+                addLog(`⚡ PETIR KEMURKAAN OLYMPUS! Waktu 9 menit habis. Zeus menyambar sisa saldo Rp ${burned.toLocaleString('id-ID')} Anda hingga hangus menjadi Rp 0!`, "text-red-500 font-extrabold tracking-wider uppercase animate-bounce");
+                
+                try {
+                    const scene = window.game?.scene?.scenes[0];
+                    if (scene) {
+                        scene.cameras.main.flash(600, 255, 0, 0, 0.25);
+                        scene.cameras.main.shake(500, 0.025);
+                        SlotAudio.playSpin(); 
+                    }
+                } catch (e) {}
+            }
+        }
+
+        setInterval(updateRtpDashboard, 1000);
+
+        function updateMultipliersUI() {
+            const container = document.getElementById('multipliers-overlay');
+            if (container) {
+                if (activeMultipliers.length === 0) {
+                    container.innerHTML = '';
+                } else {
+                    container.innerHTML = activeMultipliers.map(mult => `
+                        <div class="geometry-multiplier-badge px-3 py-1.5 rounded-full text-xs font-black flex items-center justify-center gap-1 shadow-md animate-bounce uppercase">
+                            <span>⚡ X${mult}</span>
+                        </div>
+                    `).join('');
+                }
+            }
+            updateSkyShift();
         }
 
         function updateProgressBar(percentage) {
@@ -774,6 +1210,33 @@
         function updateUI() {
             creditDisplay.innerText = `Rp ${credit.toLocaleString('id-ID')}`;
             winDisplay.innerText = `Rp ${win.toLocaleString('id-ID')}`;
+
+            // Update session performance stats
+            const biggestWinEl = document.getElementById('biggest-win-val');
+            const profitLossEl = document.getElementById('profit-loss-val');
+            
+            if (biggestWinEl) {
+                biggestWinEl.innerText = `Rp ${biggestWin.toLocaleString('id-ID')}`;
+                if (biggestWin > 0) {
+                    biggestWinEl.className = "text-xs font-black text-yellow-400 font-mono animate-pulse";
+                } else {
+                    biggestWinEl.className = "text-xs font-black text-gray-500 font-mono";
+                }
+            }
+            
+            if (profitLossEl) {
+                const diff = credit - sessionStartCredit;
+                if (diff > 0) {
+                    profitLossEl.innerText = `+Rp ${diff.toLocaleString('id-ID')}`;
+                    profitLossEl.className = "text-xs font-black text-emerald-400 font-mono";
+                } else if (diff < 0) {
+                    profitLossEl.innerText = `-Rp ${Math.abs(diff).toLocaleString('id-ID')}`;
+                    profitLossEl.className = "text-xs font-black text-rose-500 font-mono";
+                } else {
+                    profitLossEl.innerText = `Rp 0`;
+                    profitLossEl.className = "text-xs font-black text-gray-500 font-mono";
+                }
+            }
         }
 
         function updateWinUI() {
@@ -824,13 +1287,64 @@
             addLog(`⚡ Fast Play: ${fastPlay ? "<b>AKTIF</b> (Animasi dipercepat)" : "<b>NONAKTIF</b>"}`, "text-blue-400");
         }
 
+        function stopAutoSpin() {
+            autoSpin = false;
+            const chk = document.getElementById('auto-spin-chk');
+            if (chk) chk.checked = false;
+            
+            const panel = document.getElementById('auto-spin-settings');
+            if (panel) {
+                panel.classList.add('hidden');
+            }
+            resetSpinIdleTimer();
+        }
+
+        function checkSafetyLimits(lastWin = 0) {
+            if (!autoSpin) return false;
+            
+            // Check Credit Drops Below Limit
+            const creditLimitInput = document.getElementById('auto-stop-credit');
+            if (creditLimitInput && creditLimitInput.value) {
+                const stopCredit = parseFloat(creditLimitInput.value);
+                if (!isNaN(stopCredit) && stopCredit > 0 && credit < stopCredit) {
+                    addLog(`⛔ AUTO SPIN BATAL: Saldo (Rp ${credit.toLocaleString('id-ID')}) berada di bawah batas pengaman Rp ${stopCredit.toLocaleString('id-ID')}!`, "text-amber-500 font-bold");
+                    stopAutoSpin();
+                    return true;
+                }
+            }
+            
+            // Check Single Win Exceeds Limit
+            const winLimitInput = document.getElementById('auto-stop-win');
+            if (winLimitInput && winLimitInput.value && lastWin > 0) {
+                const stopWin = parseFloat(winLimitInput.value);
+                if (!isNaN(stopWin) && stopWin > 0 && lastWin >= stopWin) {
+                    addLog(`⛔ AUTO SPIN SELESAI: Kemenangan putaran ini (Rp ${lastWin.toLocaleString('id-ID')}) mencapai/melebihi batas pengaman Rp ${stopWin.toLocaleString('id-ID')}!`, "text-emerald-400 font-bold animate-pulse");
+                    stopAutoSpin();
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
         function toggleAutoSpin() {
             autoSpin = document.getElementById('auto-spin-chk').checked;
             addLog(`🔁 Auto Spin: ${autoSpin ? "<b>AKTIF</b> (Putaran Otomatis)" : "<b>NONAKTIF</b>"}`, "text-purple-400");
             
+            const panel = document.getElementById('auto-spin-settings');
+            if (panel) {
+                if (autoSpin) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+            
             // Trigger immediately if idle
             if (autoSpin && !isSpinning && credit >= bet) {
-                triggerSpin();
+                if (!checkSafetyLimits(0)) {
+                    triggerSpin();
+                }
             } else {
                 resetSpinIdleTimer();
             }
@@ -838,10 +1352,18 @@
 
         function refillBalance() {
             if (isSpinning) return;
-            credit = 10000000;
+            credit = 5000000;
+            biggestWin = 0;
+            sessionStartCredit = 5000000;
+            sessionStartTime = Date.now();
+            spinsInPhase3 = 0;
+            currentOverridePhase = null;
             updateUI();
-            addLog("💸 Saldo credit diisi ulang kembali menjadi <b>Rp 10.000.000</b>!", "text-emerald-400");
+            addLog("💸 Saldo credit diisi ulang kembali menjadi <b>Rp 5.000.000</b> dan timeline algoritma RTP di-reset ulang!", "text-emerald-400 font-extrabold");
             resetSpinIdleTimer();
+            if (typeof updateRtpDashboard === 'function') {
+                updateRtpDashboard();
+            }
         }
 
         // Payout evaluation table renderer
@@ -941,6 +1463,10 @@
         function triggerSpin() {
             if (isSpinning) return;
             
+            if (autoSpin && !isFreeSpinsActive && checkSafetyLimits(0)) {
+                return;
+            }
+            
             isSpinning = true;
 
             if (isFreeSpinsActive && freeSpinsRemaining > 0) {
@@ -948,8 +1474,20 @@
                 updateFreeSpinsHUD();
                 addLog(`🔥 PUTARAN GRATIS MULAI! Sisa FS: <b>${freeSpinsRemaining} Putaran</b>. Multiplier Global: <b>X${globalFreeSpinsMultiplier}</b>`, "text-amber-400 font-extrabold");
             } else {
-                if (credit < bet) {
-                    addLog(`⚠️ SALDO HABIS! Credit tidak mencukupi untuk Bet Rp ${bet.toLocaleString('id-ID')}. Klik tombol "Refill" di saldo.`, "text-red-400 font-bold");
+                const phase = typeof getActivePhaseInfo === 'function' ? getActivePhaseInfo().id : 1;
+                let activeBet = bet;
+                
+                if (phase === 3) {
+                    spinsInPhase3++;
+                    const remainingEstimateTurns = Math.max(1, 12 - spinsInPhase3);
+                    activeBet = Math.max(bet, Math.ceil(credit / remainingEstimateTurns));
+                    if (activeBet > credit) {
+                        activeBet = credit;
+                    }
+                }
+                
+                if (credit < activeBet || credit <= 0) {
+                    addLog(`⚠️ SALDO HABIS! Credit tidak mencukupi untuk Bet Rp ${activeBet.toLocaleString('id-ID')}. Klik tombol "Refill" di saldo.`, "text-red-400 font-bold");
                     isSpinning = false;
                     
                     // Disable Auto Spin automatic loops
@@ -962,8 +1500,12 @@
                 }
 
                 // Deduct the slot investment
-                credit -= bet;
-                addLog(`🎰 SPIN! Bet: <b>Rp ${bet.toLocaleString('id-ID')}</b>. Credit sisa: Rp ${credit.toLocaleString('id-ID')}`, "text-gray-400 font-medium");
+                credit -= activeBet;
+                if (phase === 3) {
+                    addLog(`⚡ SPIN KEMURKAAN ZEUS! Dewa menguras saldo sebesar <b>Rp ${activeBet.toLocaleString('id-ID')}</b> (Zeus Tax). Sisa credit: Rp ${credit.toLocaleString('id-ID')}`, "text-rose-500 font-extrabold tracking-wide uppercase animate-pulse");
+                } else {
+                    addLog(`🎰 SPIN! Bet: <b>Rp ${activeBet.toLocaleString('id-ID')}</b>. Credit sisa: Rp ${credit.toLocaleString('id-ID')}`, "text-gray-400 font-medium");
+                }
             }
             
             // Reset active round multipliers
@@ -1014,6 +1556,7 @@
         };
 
         const game = new Phaser.Game(config);
+        window.game = game;
 
         function swapSymbols(scene, c1, r1, c2, r2) {
             const sym1 = grid[c1][r1];
@@ -1506,9 +2049,21 @@
 
         function getRandomSymbolColor() {
             const colors = ['red', 'purple', 'yellow', 'green', 'blue'];
-            // 4.5% chance of rolling a scatter
-            if (Math.random() < 0.045) {
-                return 'scatter';
+            const phase = typeof getActivePhaseInfo === 'function' ? getActivePhaseInfo().id : 1;
+            
+            if (phase === 3) {
+                // Absolute zero scatters
+                return colors[Math.floor(Math.random() * colors.length)];
+            } else if (phase === 2) {
+                // Boosted scatter rate for epic wins
+                if (Math.random() < 0.08) {
+                    return 'scatter';
+                }
+            } else {
+                // Slightly reduced standard scatter rate for slow lose
+                if (Math.random() < 0.035) {
+                    return 'scatter';
+                }
             }
             return colors[Math.floor(Math.random() * colors.length)];
         }
@@ -1591,6 +2146,130 @@
             }
         }
 
+        function getPhaseBasedGridColors(phaseId) {
+            const gridColors = Array(COLS).fill(null).map(() => Array(ROWS).fill(null));
+            
+            if (phaseId === 3) {
+                let pool = [];
+                for (let i = 0; i < 6; i++) pool.push('red');
+                for (let i = 0; i < 6; i++) pool.push('purple');
+                for (let i = 0; i < 6; i++) pool.push('yellow');
+                for (let i = 0; i < 6; i++) pool.push('green');
+                for (let i = 0; i < 5; i++) pool.push('blue');
+                pool.push('scatter');
+                
+                Phaser.Utils.Array.Shuffle(pool);
+                
+                let idx = 0;
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 0; r < ROWS; r++) {
+                        gridColors[c][r] = pool[idx++];
+                    }
+                }
+                return gridColors;
+            }
+            
+            if (phaseId === 1) {
+                const roll = Math.random();
+                if (roll < 0.65) {
+                    let pool = [];
+                    for (let i = 0; i < 6; i++) pool.push('red');
+                    for (let i = 0; i < 6; i++) pool.push('purple');
+                    for (let i = 0; i < 6; i++) pool.push('yellow');
+                    for (let i = 0; i < 6; i++) pool.push('green');
+                    for (let i = 0; i < 5; i++) pool.push('blue');
+                    pool.push('scatter');
+                    
+                    Phaser.Utils.Array.Shuffle(pool);
+                    
+                    let idx = 0;
+                    for (let c = 0; c < COLS; c++) {
+                        for (let r = 0; r < ROWS; r++) {
+                            gridColors[c][r] = pool[idx++];
+                        }
+                    }
+                } else {
+                    const winColor = Phaser.Utils.Array.GetRandom(['red', 'purple', 'yellow', 'green', 'blue']);
+                    let pool = Array(8).fill(winColor);
+                    
+                    const otherColors = ['red', 'purple', 'yellow', 'green', 'blue'].filter(c => c !== winColor);
+                    otherColors.forEach(oc => {
+                        for (let i = 0; i < 5; i++) pool.push(oc);
+                    });
+                    pool.push('scatter');
+                    pool.push('scatter');
+                    
+                    Phaser.Utils.Array.Shuffle(pool);
+                    
+                    let idx = 0;
+                    for (let c = 0; c < COLS; c++) {
+                        for (let r = 0; r < ROWS; r++) {
+                            gridColors[c][r] = pool[idx++];
+                        }
+                    }
+                }
+                return gridColors;
+            }
+            
+            const roll = Math.random();
+            if (roll < 0.35 && !isFreeSpinsActive) {
+                const sCount = Phaser.Math.Between(4, 5);
+                let pool = Array(sCount).fill('scatter');
+                
+                const winColor = Phaser.Utils.Array.GetRandom(['red', 'purple', 'yellow', 'green', 'blue']);
+                const wCount = Phaser.Math.Between(9, 11);
+                for (let i = 0; i < wCount; i++) pool.push(winColor);
+                
+                const remaining = 30 - pool.length;
+                const otherColors = ['red', 'purple', 'yellow', 'green', 'blue'].filter(c => c !== winColor);
+                for (let i = 0; i < remaining; i++) {
+                    pool.push(Phaser.Utils.Array.GetRandom(otherColors));
+                }
+                
+                Phaser.Utils.Array.Shuffle(pool);
+                
+                let idx = 0;
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 0; r < ROWS; r++) {
+                        gridColors[c][r] = pool[idx++];
+                    }
+                }
+            } else {
+                const winColor1 = Phaser.Utils.Array.GetRandom(['red', 'purple', 'yellow', 'green', 'blue']);
+                let winColor2 = Phaser.Utils.Array.GetRandom(['red', 'purple', 'yellow', 'green', 'blue']);
+                while (winColor2 === winColor1) {
+                    winColor2 = Phaser.Utils.Array.GetRandom(['red', 'purple', 'yellow', 'green', 'blue']);
+                }
+                
+                const count1 = Phaser.Math.Between(10, 13);
+                const count2 = Phaser.Math.Between(8, 10);
+                
+                let pool = [];
+                for (let i = 0; i < count1; i++) pool.push(winColor1);
+                for (let i = 0; i < count2; i++) pool.push(winColor2);
+                
+                if (Math.random() < 0.35) {
+                    pool.push('scatter');
+                }
+                
+                const remaining = 30 - pool.length;
+                const otherColors = ['red', 'purple', 'yellow', 'green', 'blue'].filter(c => c !== winColor1 && c !== winColor2);
+                for (let i = 0; i < remaining; i++) {
+                    pool.push(Phaser.Utils.Array.GetRandom(otherColors.length > 0 ? otherColors : ['red', 'blue']));
+                }
+                
+                Phaser.Utils.Array.Shuffle(pool);
+                
+                let idx = 0;
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 0; r < ROWS; r++) {
+                        gridColors[c][r] = pool[idx++];
+                    }
+                }
+            }
+            return gridColors;
+        }
+
         // Spawn 30 elements down grid dynamically
         function spawnNewGrid(scene) {
             const speedMultiplier = fastPlay ? 0.35 : 1.0;
@@ -1602,9 +2281,12 @@
             let animatedCount = 0;
             const totalTarget = COLS * ROWS; // 30
             
+            const activePhase = getActivePhaseInfo().id;
+            const preGeneratedGrid = getPhaseBasedGridColors(activePhase);
+            
             for (let r = ROWS - 1; r >= 0; r--) {
                 for (let c = 0; c < COLS; c++) {
-                    const color = getRandomSymbolColor();
+                    const color = preGeneratedGrid[c][r];
                     const startX = c * 100 + 50;
                     // Stagger initial height slots
                     const startY = -150 - (r * 40);
@@ -2060,24 +2742,149 @@
             let finalWin = currentTumbleWin;
             let multiplierSum = activeMultipliers.reduce((a, b) => a + b, 0);
             
+            let hasMultiplier = false;
+            let activeMultVal = 0;
+            
             if (currentTumbleWin > 0) {
                 if (isFreeSpinsActive) {
                     if (multiplierSum > 0) {
                         globalFreeSpinsMultiplier += multiplierSum;
                         addLog(`⚡ MULTIPLIER BARU TERKUMPUL! Pengali Global kini meningkat menjadi: <b>X${globalFreeSpinsMultiplier}</b>`, "text-amber-300 font-extrabold animate-pulse");
+                        updateSkyShift();
                     }
                     if (globalFreeSpinsMultiplier > 0) {
                         finalWin = currentTumbleWin * globalFreeSpinsMultiplier;
+                        hasMultiplier = true;
+                        activeMultVal = globalFreeSpinsMultiplier;
                         addLog(`🔥 PENGALI GLOBAL AKTIF! Kemenangan dikalikan multiplier global sebesar <b>X${globalFreeSpinsMultiplier}</b> (Tumble: Rp ${currentTumbleWin.toLocaleString('id-ID')} x ${globalFreeSpinsMultiplier})`, "text-amber-400 font-black");
                     }
-                    freeSpinsTotalWinAccumulator += finalWin;
                 } else {
                     if (multiplierSum > 0) {
                         finalWin = currentTumbleWin * multiplierSum;
+                        hasMultiplier = true;
+                        activeMultVal = multiplierSum;
                         addLog(`🔥 MULTIPLIER AKTIF! Total kemenangan akhir dikalikan pengali kombinasi sebesar <b>X${multiplierSum}</b> (Tumble: Rp ${currentTumbleWin.toLocaleString('id-ID')} x ${multiplierSum})`, "text-amber-400 font-black");
                     }
                 }
+            }
 
+            if (hasMultiplier && currentTumbleWin > 0) {
+                // Slam-it down with epic multiplier pop visual flow first!
+                triggerMultiplierPop(currentTumbleWin, activeMultVal, finalWin, () => {
+                    finalizePayout(finalWin);
+                });
+            } else {
+                finalizePayout(finalWin);
+            }
+        }
+
+        // Implementation of Visual Multiplier Pop Animation
+        function triggerMultiplierPop(baseWin, activeMultiplier, finalWin, callback) {
+            const overlay = document.getElementById('multiplier-pop-overlay');
+            const popBase = document.getElementById('m-pop-base');
+            const popMult = document.getElementById('m-pop-multiplier');
+            const popFinal = document.getElementById('m-pop-final');
+            const multBox = document.getElementById('m-pop-multiplier-box');
+            const resultBox = document.getElementById('m-pop-result-box');
+            
+            if (!overlay || !popBase || !popMult || !popFinal) {
+                callback();
+                return;
+            }
+            
+            // Render textual data
+            popBase.innerText = `Rp ${baseWin.toLocaleString('id-ID')}`;
+            popMult.innerText = `X${activeMultiplier}`;
+            popFinal.innerText = `Rp ${finalWin.toLocaleString('id-ID')}`;
+            
+            // Transition state set-up
+            overlay.classList.remove('hidden', 'pointer-events-none');
+            overlay.style.transition = 'opacity 0.25s ease-out';
+            overlay.style.opacity = '0';
+            
+            multBox.style.transition = 'none';
+            multBox.style.transform = 'scale(0.3) rotate(-25deg)';
+            multBox.style.opacity = '0';
+            
+            resultBox.style.transition = 'none';
+            resultBox.style.transform = 'scale(0.65)';
+            resultBox.style.opacity = '0';
+            resultBox.className = "z-10 px-6 py-4 rounded-2xl bg-slate-950 border border-emerald-500/50 shadow-none min-w-[240px]";
+            
+            // Impose safety lockouts
+            isSpinning = true;
+            setSpinButtonState(false);
+            
+            // 1. Fade-in ambient backing dark box
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                try {
+                    const scene = window.game?.scene?.scenes[0];
+                    if (scene) {
+                        scene.cameras.main.flash(300, 212, 163, 89, 0.2);
+                    }
+                } catch (e) {}
+            }, 60);
+            
+            // 2. Slam multiplier element with powerful zoom pop (play sound)
+            setTimeout(() => {
+                multBox.style.transition = 'all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                multBox.style.transform = 'scale(1.2) rotate(6deg)';
+                multBox.style.opacity = '1';
+                
+                if (typeof SlotAudio !== 'undefined' && typeof SlotAudio.playMultiplier === 'function') {
+                    SlotAudio.playMultiplier();
+                }
+                
+                // Fine-tune stabilizing bounce
+                setTimeout(() => {
+                    multBox.style.transform = 'scale(1.1) rotate(0deg)';
+                }, 355);
+            }, 400);
+            
+            // 3. Unveil finalized multiplied total with emerald green blast overlay (play win sound + shakes)
+            setTimeout(() => {
+                resultBox.style.transition = 'all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.45)';
+                resultBox.style.transform = 'scale(1.1)';
+                resultBox.style.opacity = '1';
+                resultBox.className = "z-10 px-6 py-4 rounded-2xl bg-slate-950 border border-emerald-500 shadow-[0_0_35px_rgba(16,185,129,0.7)] min-w-[240px]";
+                
+                if (typeof SlotAudio !== 'undefined' && typeof SlotAudio.playWin === 'function') {
+                    SlotAudio.playWin();
+                }
+                
+                try {
+                    const scene = window.game?.scene?.scenes[0];
+                    if (scene) {
+                        scene.cameras.main.shake(250, 0.015);
+                    }
+                } catch (e) {}
+                
+                setTimeout(() => {
+                    resultBox.style.transform = 'scale(1)';
+                }, 450);
+            }, 1050);
+            
+            // 4. Leave shown for reading, then retract
+            const calculatedDuration = fastPlay ? 2100 : 3100;
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.classList.add('pointer-events-none');
+                    callback();
+                }, 260);
+            }, calculatedDuration);
+        }
+
+        // Finalize state updates, balance additions, logging logic
+        function finalizePayout(finalWin) {
+            if (currentTumbleWin > 0) {
+                if (finalWin > biggestWin) {
+                    biggestWin = finalWin;
+                }
+                if (isFreeSpinsActive) {
+                    freeSpinsTotalWinAccumulator += finalWin;
+                }
                 credit += finalWin;
                 win = finalWin;
                 updateUI();
@@ -2100,6 +2907,7 @@
             if (finalWin > 0 && finalWin >= bet * 10) {
                 isSpinning = true;
                 setSpinButtonState(false);
+                triggerPhaserLightningFlashes(); // Trigger visual storm and flashes on Phaser
                 triggerBigWinCelebration(finalWin, () => {
                     continueEndSpinCycle();
                 });
@@ -2176,10 +2984,15 @@
             
             // Handle Auto Spin loops for base game
             if (autoSpin) {
+                if (checkSafetyLimits(win)) {
+                    return;
+                }
                 let scene = game.scene.scenes[0];
                 autoSpinTimer = scene.time.delayedCall(1200, () => {
                     if (autoSpin && !isSpinning) {
-                        triggerSpin();
+                        if (!checkSafetyLimits(0)) {
+                            triggerSpin();
+                        }
                     }
                 });
             }
@@ -2236,6 +3049,111 @@
                 }
             }
         });
+
+        // Trigger dynamic graphical lightning storms on Phaser canvas
+        function triggerPhaserLightningFlashes() {
+            const scene = window.game?.scene?.scenes[0];
+            if (!scene) return;
+            
+            // Camera flash & shake 
+            scene.cameras.main.flash(200, 255, 255, 255, true);
+            scene.cameras.main.shake(300, 0.015);
+            
+            const spawnBolt = (startX, startY, endX, endY, delay = 0, color = 0xffffff, glowColor = 0x00e1ff) => {
+                setTimeout(() => {
+                    const graphics = scene.add.graphics();
+                    graphics.lineStyle(3, color, 1);
+                    
+                    const glowGraphics = scene.add.graphics();
+                    glowGraphics.lineStyle(10, glowColor, 0.45);
+
+                    const points = [];
+                    points.push({ x: startX, y: startY });
+                    
+                    const distX = endX - startX;
+                    const distY = endY - startY;
+                    const distance = Math.sqrt(distX * distX + distY * distY);
+                    const steps = Math.max(4, Math.floor(distance / 25));
+                    
+                    for (let i = 1; i < steps; i++) {
+                        const t = i / steps;
+                        let targetX = startX + distX * t;
+                        let targetY = startY + distY * t;
+                        
+                        // Perpendicular displacement offset for classic randomized zigzag appearance
+                        const normalX = -distY / distance;
+                        const normalY = distX / distance;
+                        const offset = (Math.random() - 0.5) * 35;
+                        
+                        targetX += normalX * offset;
+                        targetY += normalY * offset;
+                        
+                        points.push({ x: targetX, y: targetY });
+                    }
+                    points.push({ x: endX, y: endY });
+                    
+                    graphics.beginPath();
+                    glowGraphics.beginPath();
+                    
+                    graphics.moveTo(points[0].x, points[0].y);
+                    glowGraphics.moveTo(points[0].x, points[0].y);
+                    
+                    for (let i = 1; i < points.length; i++) {
+                        graphics.lineTo(points[i].x, points[i].y);
+                        glowGraphics.lineTo(points[i].x, points[i].y);
+                    }
+                    
+                    graphics.strokePath();
+                    glowGraphics.strokePath();
+                    
+                    // Create lightning sparks at target landing area
+                    const sparks = [];
+                    for (let i = 0; i < 6; i++) {
+                        const sx = endX + (Math.random() - 0.5) * 30;
+                        const sy = endY + (Math.random() - 0.5) * 30;
+                        const sparkColor = color === 0xffffff ? 0xffea00 : color;
+                        const spark = scene.add.circle(sx, sy, Math.random() * 3.5 + 1.5, sparkColor);
+                        sparks.push(spark);
+                    }
+                    
+                    // Multiplier audio play as thunder rumble accent
+                    if (typeof SlotAudio !== 'undefined' && typeof SlotAudio.playMultiplier === 'function') {
+                         SlotAudio.playMultiplier();
+                    }
+                    
+                    scene.tweens.add({
+                        targets: [graphics, glowGraphics],
+                        alpha: 0,
+                        duration: 180,
+                        onComplete: () => {
+                            graphics.destroy();
+                            glowGraphics.destroy();
+                            sparks.forEach(s => s.destroy());
+                        }
+                    });
+                }, delay);
+            };
+
+            const width = scene.sys.game.config.width || 500;
+            const height = scene.sys.game.config.height || 600;
+            
+            // Bolt strike sequence
+            spawnBolt(width / 2, 20, width * 0.25, height * 0.45, 0, 0xffffff, 0x00d2ff); 
+            spawnBolt(width / 2, 20, width * 0.75, height * 0.65, 120, 0xffea00, 0xffaa00);
+            
+            // Double flash shockwave
+            setTimeout(() => {
+                scene.cameras.main.flash(150, 255, 235, 180, true);
+                scene.cameras.main.shake(180, 0.012);
+                
+                spawnBolt(width * 0.3, 0, width * 0.5, height * 0.55, 0, 0xffffff, 0x00ffff);
+                spawnBolt(width * 0.7, 0, width * 0.4, height * 0.75, 80, 0xff2af0, 0xff0044);
+            }, 320);
+
+            setTimeout(() => {
+                spawnBolt(width / 2, 10, width * 0.6, height * 0.35, 0, 0x00ffff, 0x0044ff);
+            }, 550);
+        }
 
         // Trigger Big Win celebratory count up
         function triggerBigWinCelebration(amount, callback) {
